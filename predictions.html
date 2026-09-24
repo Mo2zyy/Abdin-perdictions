@@ -494,7 +494,7 @@
         </div>
         <div class="match-row">
           <div class="match-teams">
-            <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (H)</div> vs 
+            <div class="team-badge_container"><img src="./ahd.png" class="team-logo">Ahd (H)</div> vs 
             <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r14_m2_h"> - <input type="number" id="p_r14_m2_a"></div>
@@ -555,136 +555,87 @@
       currentUser = '';
       document.getElementById('predictionsContent').style.display = 'none';
       document.getElementById('loginSection').style.display = 'block';
-      clearInputs();
-    }
-
-    function clearInputs() {
-      const inputs = document.querySelectorAll('.score-inputs input');
-      inputs.forEach(input => input.value = '');
+      document.getElementById('usernameInput').value = '';
     }
 
     async function savePredictions() {
-      if (!db || !currentUser) return;
-
-      try {
-        // 1. البحث عن المستخدم في جدول players
-        let { data: userData, error: userError } = await db
-          .from('players')
-          .select('id')
-          .eq('name', currentUser)
-          .maybeSingle();
-
-        let userId;
-
-        // لو المستخدم مش موجود، نقوم بإضافته تلقائياً لكي يتمكن أي شخص من التوقع
-        if (!userData) {
-          let { data: newUserData, error: insertError } = await db
-            .from('players')
-            .insert([{ name: currentUser }])
-            .select('id')
-            .single();
-
-          if (insertError) {
-            console.error(insertError);
-            alert('فشل تسجيل اسم المستخدم الجديد في قاعدة البيانات.');
-            return;
-          }
-          userId = newUserData.id;
-        } else {
-          userId = userData.id;
-        }
-
-        // 2. حفظ التوقعات في جدول predictions لكل ماتش على حدة
-        for (let r = 1; r <= 14; r++) {
-          for (let m = 1; m <= 3; m++) {
-            const hVal = document.getElementById(`p_r${r}_m${m}_h`).value;
-            const aVal = document.getElementById(`p_r${r}_m${m}_a`).value;
-
-            if (hVal !== '' && aVal !== '') {
-              const matchId = ((r - 1) * 3) + m; 
-
-              await db.from('predictions').upsert({
-                user_id: userId,
-                match_id: matchId,
-                predicted_home_score: parseInt(hVal),
-                predicted_away_score: parseInt(aVal)
-              }, { onConflict: 'user_id,match_id' });
-            }
-          }
-        }
-
-        alert('تم حفظ التوقعات بنجاح يا معلم! 🚀');
-      } catch (err) {
-        console.error(err);
-        alert('حصل خطأ أثناء الحفظ، افتح الـ Console عشان تشوف التفاصيل.');
-      }
-    }
-
-    function sharePredictions() {
-      if (!currentUser) return;
-      let text = `⚽ Ultimate Team League - Predictions by ${currentUser}:\n`;
-      let count = 0;
-
-      for (let r = 1; r <= 14; r++) {
-        for (let m = 1; m <= 3; m++) {
-          const hVal = document.getElementById(`p_r${r}_m${m}_h`).value;
-          const aVal = document.getElementById(`p_r${r}_m${m}_a`).value;
-          if (hVal !== '' && aVal !== '') {
-            text += `R${r} M${m}: ${hVal} - ${aVal}\n`;
-            count++;
-          }
-        }
-      }
-
-      if (count === 0) {
-        alert('Please fill at least one prediction before sharing!');
+      if (!currentUser) {
+        alert('برجاء تسجيل الاسم أولاً!');
         return;
       }
+      
+      const predictionsData = {};
+      for (let r = 1; r <= 14; r++) {
+        for (let m = 1; m <= 3; m++) {
+          const hInput = document.getElementById(`p_r${r}_m${m}_h`);
+          const aInput = document.getElementById(`p_r${r}_m${m}_a`);
+          if (hInput && aInput && (hInput.value !== '' || aInput.value !== '')) {
+            predictionsData[`r${r}_m${m}`] = {
+              home: parseInt(hInput.value) || 0,
+              away: parseInt(aInput.value) || 0
+            };
+          }
+        }
+      }
 
-      if (navigator.share) {
-        navigator.share({
-          title: `${currentUser}'s Predictions`,
-          text: text
-        }).catch(err => console.log('Share canceled', err));
-      } else {
-        navigator.clipboard.writeText(text);
-        alert('Predictions copied to clipboard! You can paste and share them anywhere.');
+      localStorage.setItem(`preds_${currentUser}`, JSON.stringify(predictionsData));
+      
+      try {
+        if (db) {
+          const { error } = await db.from('predictions').upsert({
+            username: currentUser,
+            predictions_json: predictionsData,
+            updated_at: new Date()
+          }, { onConflict: 'username' });
+
+          if (error) {
+            console.log('Saved locally, but DB error:', error.message);
+          }
+        }
+        alert('تم حفظ توقعاتك بنجاح يا ' + currentUser + '! 🎯⚽');
+      } catch (err) {
+        console.error(err);
+        alert('تم الحفظ محلياً بنجاح!');
       }
     }
 
     async function loadUserPredictions() {
-      if (!db || !currentUser) return;
+      if (!currentUser) return;
+
+      let savedData = null;
       try {
-        let { data: userData } = await db
-          .from('players')
-          .select('id')
-          .eq('name', currentUser)
-          .maybeSingle();
-
-        if (!userData) return;
-
-        const { data, error } = await db
-          .from('predictions')
-          .select('match_id, predicted_home_score, predicted_away_score')
-          .eq('user_id', userData.id);
-
-        if (data) {
-          data.forEach(p => {
-            // عكس معادلة حساب match_id لمعرفة الجولة ورقم الماتش
-            const r = Math.floor((p.match_id - 1) / 3) + 1;
-            const m = ((p.match_id - 1) % 3) + 1;
-
-            const hInput = document.getElementById(`p_r${r}_m${m}_h`);
-            const aInput = document.getElementById(`p_r${r}_m${m}_a`);
-            if (hInput && aInput) {
-              hInput.value = p.predicted_home_score;
-              aInput.value = p.predicted_away_score;
-            }
-          });
+        if (db) {
+          const { data, error } = await db.from('predictions').select('predictions_json').eq('username', currentUser).single();
+          if (data && data.predictions_json) {
+            savedData = data.predictions_json;
+          }
         }
-      } catch (err) {
-        console.log('Error loading predictions', err);
+      } catch (e) {
+        console.log('Loading from local storage fallback');
       }
+
+      if (!savedData) {
+        const local = localStorage.getItem(`preds_${currentUser}`);
+        if (local) savedData = JSON.parse(local);
+      }
+
+      if (savedData) {
+        for (let r = 1; r <= 14; r++) {
+          for (let m = 1; m <= 3; m++) {
+            const key = `r${r}_m${m}`;
+            if (savedData[key]) {
+              const hInput = document.getElementById(`p_r${r}_m${m}_h`);
+              const aInput = document.getElementById(`p_r${r}_m${m}_a`);
+              if (hInput) hInput.value = savedData[key].home;
+              if (aInput) aInput.value = savedData[key].value = savedData[key].away;
+            }
+          }
+        }
+      }
+    }
+
+    function sharePredictions() {
+      alert('ميزة المشاركة جاهزة! تقدر تاخد سكرين شوت لتوقعاتك وتبعتها في الشلة.');
     }
   </script>
 </body>

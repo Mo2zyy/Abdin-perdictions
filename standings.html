@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EA FC League - Standings</title>
+  <title>ULTIMATE TEAM LEAGUE - Standings</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
     :root {
@@ -16,87 +16,79 @@
 
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: var(--bg-dark); color: var(--text-white); margin: 0; padding: 20px; }
-    .container { max-width: 900px; margin: 0 auto; }
+    .container { max-width: 800px; margin: 0 auto; }
     
     h1 { text-align: center; color: var(--text-white); font-weight: 900; letter-spacing: 1px; font-size: 2.2rem; margin-bottom: 10px; }
     h1 span { color: var(--accent-green); }
-    h2 { text-align: center; color: var(--accent-green); margin-top: 20px; margin-bottom: 20px; text-transform: uppercase; font-size: 1.4rem; }
+    h2 { text-align: center; color: var(--accent-green); margin-bottom: 20px; text-transform: uppercase; font-size: 1.4rem; }
     
+    /* Navigation Bar */
     .nav { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
     .nav a { color: var(--text-white); text-decoration: none; padding: 10px 18px; background: var(--card-bg); border-radius: 6px; font-weight: bold; border: 1px solid var(--border-color); transition: all 0.2s; font-size: 14px; }
     .nav a.active { background: var(--accent-green); color: #000; border-color: var(--accent-green); }
     .nav a:hover:not(.active) { border-color: var(--accent-green); }
 
-    .table-responsive { overflow-x: auto; margin-bottom: 30px; }
-    table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
-    th, td { padding: 14px 10px; text-align: center; border-bottom: 1px solid var(--border-color); font-size: 14px; }
-    th { background: #182232; color: var(--accent-green); font-weight: 800; text-transform: uppercase; }
-    tr:hover { background: #1a2332; }
+    /* Standings Table */
+    .table-container { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: center; }
+    th, td { padding: 12px 10px; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+    th { background: #06090e; color: var(--accent-green); font-weight: bold; }
+    tr:last-child td { border-bottom: none; }
+    .team-cell { display: flex; align-items: center; gap: 10px; font-weight: bold; text-align: left; }
+    .team-logo { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--accent-green); background: #000; object-fit: contain; }
 
-    .player-cell { display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold; cursor: pointer; transition: transform 0.2s, color 0.2s; }
-    .player-cell:hover { color: var(--accent-green); transform: scale(1.03); }
-    .team-logo { width: 32px; height: 32px; object-fit: contain; border-radius: 50%; border: 1px solid var(--accent-green); background: #000; }
-
-    /* Modal Overlay */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; }
-    .modal-card { background: var(--card-bg); border: 2px solid var(--accent-green); border-radius: 12px; padding: 25px; width: 90%; max-width: 400px; text-align: center; position: relative; box-shadow: 0 0 20px rgba(0,255,135,0.2); }
-    .close-btn { position: absolute; top: 10px; right: 15px; color: #fff; font-size: 24px; cursor: pointer; font-weight: bold; }
-    .close-btn:hover { color: var(--accent-green); }
-    .modal-logo { width: 80px; height: 80px; object-fit: contain; border-radius: 50%; border: 2px solid var(--accent-green); margin-bottom: 10px; background: #000; }
-    .modal-title { font-size: 22px; font-weight: bold; color: var(--accent-green); margin-bottom: 15px; }
-    .stat-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 15px; }
-    .stat-row:last-child { border-bottom: none; }
+    /* Video Popup Modal */
+    .video-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 2000; }
+    .video-content { position: relative; background: var(--card-bg); border: 2px solid var(--accent-green); border-radius: 12px; padding: 15px; width: 90%; max-width: 700px; box-shadow: 0 0 30px rgba(0,255,135,0.3); }
+    .close-video-btn { position: absolute; top: -12px; right: -12px; background: #ef4444; color: #fff; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; font-weight: bold; cursor: pointer; z-index: 2001; }
+    .video-wrapper { position: relative; padding-bottom: 56.25%; /* 16:9 Aspect Ratio */ height: 0; overflow: hidden; border-radius: 8px; }
+    .video-wrapper video, .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
   </style>
 </head>
 <body>
 
+  <!-- Video Popup Modal -->
+  <div id="videoModal" class="video-modal">
+    <div class="video-content">
+      <button class="close-video-btn" onclick="closeVideo()">&times;</button>
+      <div class="video-wrapper">
+        <!-- ضع مسار الفيديو الخاص بك هنا (سواء فيديو MP4 محلي أو رابط Youtube/Drive) -->
+        <video id="promoVideo" controls autoplay muted playsinline>
+          <source src="./intro.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+  </div>
+
   <div class="container">
-    <h1>EA SPORTS <span>FC LEAGUE</span></h1>
+    <h1>ULTIMATE TEAM <span>LEAGUE</span></h1>
     
     <div class="nav">
-      <a href="index.html">Predictions</a>
-      <a href="standings.html" class="active">Standings</a>
+      <a href="index.html" class="active">Standings</a>
+      <a href="predictions.html">Predictions</a>
       <a href="matches.html">Matches</a>
     </div>
 
-    <h2>🏆 League Table</h2>
-    <div class="table-responsive">
+    <h2>🏆 LEAGUE TABLE</h2>
+    <div class="table-container">
       <table>
         <thead>
           <tr>
             <th>#</th>
-            <th>Player</th>
-            <th>MP</th>
+            <th style="text-align:left;">Team</th>
+            <th>P</th>
             <th>W</th>
             <th>D</th>
             <th>L</th>
-            <th>GF</th>
-            <th>GA</th>
             <th>GD</th>
-            <th>PTS</th>
+            <th>Pts</th>
           </tr>
         </thead>
         <tbody id="standings-body">
-          <tr><td colspan="10">Loading Standings...</td></tr>
+          <tr><td colspan="8">Loading Standings...</td></tr>
         </tbody>
       </table>
-    </div>
-  </div>
-
-  <!-- Player Info Modal -->
-  <div id="player-modal" class="modal-overlay" onclick="closeModal(event)">
-    <div class="modal-card">
-      <span class="close-btn" onclick="hideModal()">&times;</span>
-      <img id="modal-img" src="" class="modal-logo" alt="">
-      <div id="modal-name" class="modal-title"></div>
-      
-      <div class="stat-row"><span>Matches Played:</span><b id="modal-p">0</b></div>
-      <div class="stat-row"><span>Wins:</span><b id="modal-w" style="color:#22c55e;">0</b></div>
-      <div class="stat-row"><span>Draws:</span><b id="modal-d" style="color:#eab308;">0</b></div>
-      <div class="stat-row"><span>Losses:</span><b id="modal-l" style="color:#ef4444;">0</b></div>
-      <div class="stat-row"><span>Goals (For / Against):</span><b><span id="modal-gf">0</span> / <span id="modal-ga">0</span></b></div>
-      <div class="stat-row"><span>Goal Difference:</span><b id="modal-gd">0</b></div>
-      <div class="stat-row"><span>Total Points:</span><b id="modal-pts" style="color:var(--accent-green); font-size:18px;">0</b></div>
     </div>
   </div>
 
@@ -104,10 +96,10 @@
     const SUPABASE_URL = 'https://ffdltukfzqxqrcpvrxxe.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZGx0dWtmenF4cXJjcHZyeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDc5NDQsImV4cCI6MjEwNTgyMzk0NH0.utVnf2aOG9yxRZoYlAoziDH_LY3Bvd3KkkmcwdY-IoY';
     
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let db;
 
     const TEAM_LOGOS = {
-        'Ahd': './ahd.png',
+'Ahd': './ahd.png',
   'Angle': './Angle.png',
   'Desoky': './desoky.png',
   'Eslam': './eslam.png',
@@ -116,108 +108,85 @@
   'Seif': './seif.png'
     };
 
-    const PLAYERS = ['Ahd', 'Angle', 'Desoky', 'Eslam', 'Kamal', 'Loay', 'Seif'];
-    let globalStats = {};
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.supabase) {
+        db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        loadStandings();
+      }
+    });
 
-    async function loadData() {
+    async function loadStandings() {
       try {
-        const { data: matches, error } = await db.from('matches').select('*').order('id', { ascending: true });
+        const { data: matches } = await db.from('matches').select('*');
+        if (!matches) return;
 
-        if (error) {
-          console.error(error);
-          document.getElementById('standings-body').innerHTML = `<tr><td colspan="10" style="color:red;">Error: ${error.message}</td></tr>`;
-          return;
-        }
-
-        PLAYERS.forEach(p => {
-          globalStats[p] = { name: p, P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, PTS: 0 };
+        // حساب النقاط والترتيب تلقائياً من المباريات
+        const stats = {};
+        Object.keys(TEAM_LOGOS).forEach(team => {
+          stats[team] = { name: team, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0 };
         });
 
-        if (matches && matches.length > 0) {
-          matches.forEach(m => {
-            if (m.home_score !== null && m.away_score !== null && m.home_score !== undefined && m.away_score !== undefined) {
-              const h = m.home_team;
-              const a = m.away_team;
-              const hs = parseInt(m.home_score);
-              const as = parseInt(m.away_score);
+        matches.forEach(m => {
+          if (m.home_score !== null && m.away_score !== null && m.home_score !== undefined) {
+            const h = m.home_team;
+            const a = m.away_team;
+            const hs = parseInt(m.home_score);
+            const as = parseInt(m.away_score);
 
-              if (globalStats[h] && globalStats[a]) {
-                globalStats[h].P++; globalStats[a].P++;
-                globalStats[h].GF += hs; globalStats[h].GA += as;
-                globalStats[a].GF += as; globalStats[a].GA += hs;
+            if (stats[h] && stats[a]) {
+              stats[h].p++; stats[a].p++;
+              stats[h].gf += hs; stats[h].ga += as;
+              stats[a].gf += as; stats[a].ga += hs;
 
-                if (hs > as) {
-                  globalStats[h].W++; globalStats[h].PTS += 3;
-                  globalStats[a].L++;
-                } else if (as > hs) {
-                  globalStats[a].W++; globalStats[a].PTS += 3;
-                  globalStats[h].L++;
-                } else {
-                  globalStats[h].D++; globalStats[h].PTS += 1;
-                  globalStats[a].D++; globalStats[a].PTS += 1;
-                }
+              if (hs > as) {
+                stats[h].w++; stats[h].pts += 3;
+                stats[a].l++;
+              } else if (as > hs) {
+                stats[a].w++; stats[a].pts += 3;
+                stats[h].l++;
+              } else {
+                stats[h].d++; stats[h].pts += 1;
+                stats[a].d++; stats[a].pts += 1;
               }
             }
-          });
-        }
+          }
+        });
 
-        const sorted = Object.values(globalStats).map(s => {
-          s.GD = s.GF - s.GA;
-          return s;
-        }).sort((a, b) => b.PTS - a.PTS || b.GD - a.GD || b.GF - a.GF);
+        let tableArray = Object.values(stats);
+        tableArray.forEach(t => t.gd = t.gf - t.ga);
 
-        let tableHtml = '';
-        sorted.forEach((s, index) => {
-          const logo = TEAM_LOGOS[s.name] ? `<img src="${TEAM_LOGOS[s.name]}" class="team-logo">` : '';
-          tableHtml += `
+        // الترتيب حسب النقاط ثم فارق الأهداف
+        tableArray.sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
+
+        let html = '';
+        tableArray.forEach((t, i) => {
+          const logo = TEAM_LOGOS[t.name] ? `<img src="${TEAM_LOGOS[t.name]}" class="team-logo">` : '';
+          html += `
             <tr>
-              <td><b>${index + 1}</b></td>
-              <td>
-                <div class="player-cell" onclick="showPlayerCard('${s.name}')">
-                  ${logo} <span>${s.name}</span>
-                </div>
-              </td>
-              <td>${s.P}</td>
-              <td>${s.W}</td>
-              <td>${s.D}</td>
-              <td>${s.L}</td>
-              <td>${s.GF}</td>
-              <td>${s.GA}</td>
-              <td>${s.GD > 0 ? '+' + s.GD : s.GD}</td>
-              <td><b style="color:var(--accent-green);">${s.PTS}</b></td>
+              <td>${i + 1}</td>
+              <td class="team-cell">${logo} <span>${t.name}</span></td>
+              <td>${t.p}</td>
+              <td>${t.w}</td>
+              <td>${t.d}</td>
+              <td>${t.l}</td>
+              <td>${t.gd > 0 ? '+' + t.gd : t.gd}</td>
+              <td style="font-weight:bold; color:var(--accent-green);">${t.pts}</td>
             </tr>
           `;
         });
 
-        document.getElementById('standings-body').innerHTML = tableHtml;
+        document.getElementById('standings-body').innerHTML = html;
 
       } catch (err) {
         console.error(err);
       }
     }
 
-    function showPlayerCard(playerName) {
-      const p = globalStats[playerName];
-      if (!p) return;
-
-      document.getElementById('modal-name').innerText = p.name;
-      document.getElementById('modal-img').src = TEAM_LOGOS[p.name] || '';
-      document.getElementById('modal-p').innerText = p.P;
-      document.getElementById('modal-w').innerText = p.W;
-      document.getElementById('modal-d').innerText = p.D;
-      document.getElementById('modal-l').innerText = p.L;
-      document.getElementById('modal-gf').innerText = p.GF;
-      document.getElementById('modal-ga').innerText = p.GA;
-      document.getElementById('modal-gd').innerText = p.GD > 0 ? '+' + p.GD : p.GD;
-      document.getElementById('modal-pts').innerText = p.PTS;
-
-      document.getElementById('player-modal').style.display = 'flex';
+    function closeVideo() {
+      const vid = document.getElementById('promoVideo');
+      if (vid) vid.pause();
+      document.getElementById('videoModal').style.display = 'none';
     }
-
-    function hideModal() { document.getElementById('player-modal').style.display = 'none'; }
-    function closeModal(e) { if (e.target.id === 'player-modal') hideModal(); }
-
-    window.onload = loadData;
   </script>
 </body>
 </html>

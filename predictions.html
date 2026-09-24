@@ -48,7 +48,7 @@
     .round-section { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px; overflow: hidden; backdrop-filter: blur(10px); }
     .round-title { background: rgba(6, 9, 14, 0.85); color: var(--accent-green); padding: 12px 15px; font-weight: bold; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); }
     
-    .match-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+    .match-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-size: 14px; }
     .match-row:last-child { border-bottom: none; }
     .match-teams { flex: 1; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; text-align: center; }
     
@@ -58,6 +58,10 @@
     .score-inputs { display: flex; align-items: center; gap: 6px; }
     .score-inputs input { width: 45px; height: 35px; background: #06090e; border: 1px solid var(--border-color); color: #fff; text-align: center; border-radius: 4px; font-size: 15px; font-weight: bold; }
     .score-inputs input:focus { border-color: var(--accent-green); outline: none; }
+
+    .result-badge {
+      background: #06090e; color: #00ff87; border: 1px solid #00ff87; padding: 6px 10px; margin-top: 8px; border-radius: 4px; font-size: 12px; text-align: center; width: 100%; display: block;
+    }
 
     .actions-container { display: flex; gap: 15px; justify-content: center; margin: 30px 0; flex-wrap: wrap; }
     .btn-action { background: var(--accent-green); color: #000; border: none; padding: 14px 30px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 0 15px rgba(0,255,135,0.3); transition: transform 0.2s; }
@@ -112,9 +116,9 @@
       <div class="rules-card">
         <h4>📊 Prediction Scoring System (نظام نقاط التوقعات)</h4>
         <ul>
-          <li><strong>النتيجة الصحيحة بالظبط (Exact Score):</strong> تحصل على <strong>3 نقاط</strong> إذا توقعت فوز الفريقين وأهدافهم بدقة.</li>
-          <li><strong>توقع الفائز أو التعادل فقط (Correct Winner/Draw):</strong> تحصل على <strong>نقطة واحدة (1)</strong> إذا توقعت الفائز صح بس الأهداف غلط.</li>
-          <li><strong>الخطأ (Incorrect):</strong> <strong>0 نقاط</strong> إذا خالفت النتيجة توقعك تماماً.</li>
+          <li><strong>النتيجة الصحيحة بالظبط (Exact Score):</strong> تحصل على <strong>3 نقاط</strong> إذا توقعت فوز الفريقين وأهدافهم بدقة[cite: 6].</li>
+          <li><strong>توقع الفائز أو التعادل فقط (Correct Winner/Draw):</strong> تحصل على <strong>نقطة واحدة (1)</strong> إذا توقعت الفائز صح بس الأهداف غلط[cite: 6].</li>
+          <li><strong>الخطأ (Incorrect):</strong> <strong>0 نقاط</strong> إذا خالفت النتيجة توقعك تماماً[cite: 6].</li>
         </ul>
       </div>
 
@@ -129,21 +133,21 @@
       <!-- Round 1 -->
       <div class="round-section">
         <div class="round-title">Round 1</div>
-        <div class="match-row">
+        <div class="match-row" id="row_r1_m1">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (H)</div> vs 
             <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r1_m1_h"> - <input type="number" id="p_r1_m1_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r1_m2">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (H)</div> vs 
             <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r1_m2_h"> - <input type="number" id="p_r1_m2_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r1_m3">
           <div class="match-teams">
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (H)</div> vs 
             <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (A)</div>
@@ -155,21 +159,21 @@
       <!-- Round 2 -->
       <div class="round-section">
         <div class="round-title">Round 2</div>
-        <div class="match-row">
+        <div class="match-row" id="row_r2_m1">
           <div class="match-teams">
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (H)</div> vs 
             <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r2_m1_h"> - <input type="number" id="p_r2_m1_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r2_m2">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (H)</div> vs 
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r2_m2_h"> - <input type="number" id="p_r2_m2_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r2_m3">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (H)</div> vs 
             <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (A)</div>
@@ -181,21 +185,21 @@
       <!-- Round 3 -->
       <div class="round-section">
         <div class="round-title">Round 3</div>
-        <div class="match-row">
+        <div class="match-row" id="row_r3_m1">
           <div class="match-teams">
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (H)</div> vs 
             <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r3_m1_h"> - <input type="number" id="p_r3_m1_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r3_m2">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (H)</div> vs 
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r3_m2_h"> - <input type="number" id="p_r3_m2_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r3_m3">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (H)</div> vs 
             <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (A)</div>
@@ -207,21 +211,21 @@
       <!-- Round 4 -->
       <div class="round-section">
         <div class="round-title">Round 4</div>
-        <div class="match-row">
+        <div class="match-row" id="row_r4_m1">
           <div class="match-teams">
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (H)</div> vs 
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r4_m1_h"> - <input type="number" id="p_r4_m1_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r4_m2">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (H)</div> vs 
             <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r4_m2_h"> - <input type="number" id="p_r4_m2_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r4_m3">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (H)</div> vs 
             <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (A)</div>
@@ -233,21 +237,21 @@
       <!-- Round 5 -->
       <div class="round-section">
         <div class="round-title">Round 5</div>
-        <div class="match-row">
+        <div class="match-row" id="row_r5_m1">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (H)</div> vs 
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r5_m1_h"> - <input type="number" id="p_r5_m1_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r5_m2">
           <div class="match-teams">
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (H)</div> vs 
             <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r5_m2_h"> - <input type="number" id="p_r5_m2_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r5_m3">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (H)</div> vs 
             <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (A)</div>
@@ -259,21 +263,21 @@
       <!-- Round 6 -->
       <div class="round-section">
         <div class="round-title">Round 6</div>
-        <div class="match-row">
+        <div class="match-row" id="row_r6_m1">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (H)</div> vs 
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r6_m1_h"> - <input type="number" id="p_r6_m1_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r6_m2">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (H)</div> vs 
             <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r6_m2_h"> - <input type="number" id="p_r6_m2_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r6_m3">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (H)</div> vs 
             <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (A)</div>
@@ -285,21 +289,21 @@
       <!-- Round 7 -->
       <div class="round-section">
         <div class="round-title">Round 7</div>
-        <div class="match-row">
+        <div class="match-row" id="row_r7_m1">
           <div class="match-teams">
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (H)</div> vs 
             <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r7_m1_h"> - <input type="number" id="p_r7_m1_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r7_m2">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (H)</div> vs 
             <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r7_m2_h"> - <input type="number" id="p_r7_m2_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r7_m3">
           <div class="match-teams">
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (H)</div> vs 
             <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (A)</div>
@@ -319,21 +323,21 @@
       <!-- Round 8 -->
       <div class="round-section">
         <div class="round-title">Round 8</div>
-        <div class="match-row">
+        <div class="match-row" id="row_r8_m1">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (H)</div> vs 
             <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r8_m1_h"> - <input type="number" id="p_r8_m1_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r8_m2">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (H)</div> vs 
             <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r8_m2_h"> - <input type="number" id="p_r8_m2_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r8_m3">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (H)</div> vs 
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (A)</div>
@@ -345,21 +349,21 @@
       <!-- Round 9 -->
       <div class="round-section">
         <div class="round-title">Round 9</div>
-        <div class="match-row">
+        <div class="match-row" id="row_r9_m1">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (H)</div> vs 
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r9_m1_h"> - <input type="number" id="p_r9_m1_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r9_m2">
           <div class="match-teams">
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (H)</div> vs 
             <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r9_m2_h"> - <input type="number" id="p_r9_m2_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r9_m3">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (H)</div> vs 
             <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (A)</div>
@@ -371,21 +375,21 @@
       <!-- Round 10 -->
       <div class="round-section">
         <div class="round-title">Round 10</div>
-        <div class="match-row">
+        <div class="match-row" id="row_r10_m1">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (H)</div> vs 
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r10_m1_h"> - <input type="number" id="p_r10_m1_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r10_m2">
           <div class="match-teams">
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (H)</div> vs 
             <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r10_m2_h"> - <input type="number" id="p_r10_m2_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r10_m3">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (H)</div> vs 
             <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (A)</div>
@@ -397,21 +401,21 @@
       <!-- Round 11 -->
       <div class="round-section">
         <div class="round-title">Round 11</div>
-        <div class="match-row">
+        <div class="match-row" id="row_r11_m1">
           <div class="match-teams">
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (H)</div> vs 
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r11_m1_h"> - <input type="number" id="p_r11_m1_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r11_m2">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (H)</div> vs 
             <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r11_m2_h"> - <input type="number" id="p_r11_m2_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r11_m3">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (H)</div> vs 
             <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (A)</div>
@@ -423,21 +427,21 @@
       <!-- Round 12 -->
       <div class="round-section">
         <div class="round-title">Round 12</div>
-        <div class="match-row">
+        <div class="match-row" id="row_r12_m1">
           <div class="match-teams">
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (H)</div> vs 
             <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r12_m1_h"> - <input type="number" id="p_r12_m1_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r12_m2">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (H)</div> vs 
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r12_m2_h"> - <input type="number" id="p_r12_m2_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r12_m3">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (H)</div> vs 
             <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (A)</div>
@@ -449,21 +453,21 @@
       <!-- Round 13 -->
       <div class="round-section">
         <div class="round-title">Round 13</div>
-        <div class="match-row">
+        <div class="match-row" id="row_r13_m1">
           <div class="match-teams">
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (H)</div> vs 
             <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r13_m1_h"> - <input type="number" id="p_r13_m1_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r13_m2">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (H)</div> vs 
             <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r13_m2_h"> - <input type="number" id="p_r13_m2_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r13_m3">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (H)</div> vs 
             <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (A)</div>
@@ -475,21 +479,21 @@
       <!-- Round 14 -->
       <div class="round-section">
         <div class="round-title">Round 14</div>
-        <div class="match-row">
+        <div class="match-row" id="row_r14_m1">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (H)</div> vs 
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r14_m1_h"> - <input type="number" id="p_r14_m1_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r14_m2">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (H)</div> vs 
             <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (A)</div>
           </div>
           <div class="score-inputs"><input type="number" id="p_r14_m2_h"> - <input type="number" id="p_r14_m2_a"></div>
         </div>
-        <div class="match-row">
+        <div class="match-row" id="row_r14_m3">
           <div class="match-teams">
             <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (H)</div> vs 
             <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (A)</div>
@@ -579,7 +583,7 @@
         if (data) {
           data.forEach(m => {
             const key = `${m.home_team}_${m.away_team}`;
-            matchesMap[key] = m.id;
+            matchesMap[key] = { id: m.id, home_score: m.home_score, away_score: m.away_score };
           });
         }
       } catch (err) {
@@ -629,9 +633,9 @@
 
       for (let item of matchesStructure) {
         const matchKey = `${item.home}_${item.away}`;
-        const matchId = matchesMap[matchKey];
+        const matchObj = matchesMap[matchKey];
 
-        if (!matchId) continue;
+        if (!matchObj) continue;
 
         const hInput = document.getElementById(`p_r${item.r}_m${item.m}_h`);
         const aInput = document.getElementById(`p_r${item.r}_m${item.m}_a`);
@@ -639,7 +643,7 @@
         if (hInput && aInput && hInput.value !== '' && aInput.value !== '') {
           upsertData.push({
             user_id: currentUser,
-            match_id: matchId,
+            match_id: matchObj.id,
             predicted_home_score: parseInt(hInput.value),
             predicted_away_score: parseInt(aInput.value)
           });
@@ -655,6 +659,7 @@
         const { error } = await db.from('predictions').upsert(upsertData, { onConflict: 'user_id,match_id' });
         if (error) throw error;
         alert('Predictions saved successfully! 🚀');
+        loadUserPredictions();
       } catch (err) {
         console.error('Error saving predictions:', err);
         alert('Failed to save predictions. Check console for details.');
@@ -671,7 +676,7 @@
         if (data) {
           const idToMatch = {};
           for (let key in matchesMap) {
-            idToMatch[matchesMap[key]] = key;
+            idToMatch[matchesMap[key].id] = key;
           }
 
           data.forEach(p => {
@@ -683,6 +688,34 @@
                 const aInput = document.getElementById(`p_r${struct.r}_m${struct.m}_a`);
                 if (hInput) hInput.value = p.predicted_home_score;
                 if (aInput) aInput.value = p.predicted_away_score;
+
+                // إظهار النتيجة الحقيقية والنقاط لو المباراة اتلعبت
+                const matchObj = matchesMap[matchKey];
+                if (matchObj && matchObj.home_score !== null && matchObj.home_score !== undefined && 
+                    matchObj.away_score !== null && matchObj.away_score !== undefined) {
+                  
+                  let points = 0;
+                  if (p.predicted_home_score === matchObj.home_score && p.predicted_away_score === matchObj.away_score) {
+                    points = 3;
+                  } else if (
+                    (p.predicted_home_score > p.predicted_away_score && matchObj.home_score > matchObj.away_score) ||
+                    (p.predicted_home_score < p.predicted_away_score && matchObj.home_score < matchObj.away_score) ||
+                    (p.predicted_home_score === p.predicted_away_score && matchObj.home_score === matchObj.away_score)
+                  ) {
+                    points = 1;
+                  }
+
+                  const rowEl = document.getElementById(`row_r${struct.r}_m${struct.m}`);
+                  if (rowEl) {
+                    let badge = rowEl.querySelector('.result-badge');
+                    if (!badge) {
+                      badge = document.createElement('div');
+                      badge.className = 'result-badge';
+                      rowEl.appendChild(badge);
+                    }
+                    badge.innerHTML = `✅ النتيجة الحقيقية: <b>${matchObj.home_score} - ${matchObj.away_score}</b> | النقاط: <span style="color: #ffcc00;">+${points}</span>`;
+                  }
+                }
               }
             }
           });

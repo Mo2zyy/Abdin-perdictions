@@ -4,13 +4,13 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const TEAM_LOGOS = {
-  'Ahd': './ahd.png',
-  'Angle': './angle.png',
-  'Desoky': './desoky.png',
-  'Eslam': './eslam.png',
-  'Kamal': './kamal.png',
-  'Loay': './loay.png',
-  'Seif': './seif.png'
+  'Ahd': './ahd.jpeg',
+  'Angle': './angle.jpeg',
+  'Desoky': './desoky.jpeg',
+  'Eslam': './eslam.jpeg',
+  'Kamal': './kamal.jpeg',
+  'Loay': './loay.jpeg',
+  'Seif': './seif.jpeg'
 };
 
 let currentUser = null;

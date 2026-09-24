@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ULTIMATE TEAM LEAGUE - Standings</title>
+  <title>ULTIMATE TEAM LEAGUE - Matches</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
     :root {
@@ -27,22 +27,25 @@
     .nav a.active { background: var(--accent-green); color: #000; border-color: var(--accent-green); }
     .nav a:hover:not(.active) { border-color: var(--accent-green); }
 
-    .table-container { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); overflow-x: auto; backdrop-filter: blur(10px); }
-    table { width: 100%; border-collapse: collapse; text-align: center; }
-    th, td { padding: 12px 10px; border-bottom: 1px solid var(--border-color); font-size: 14px; }
-    th { background: rgba(6, 9, 14, 0.85); color: var(--accent-green); font-weight: bold; }
-    tr:last-child td { border-bottom: none; }
-    .team-cell { display: flex; align-items: center; gap: 10px; font-weight: bold; text-align: left; }
-    .team-logo { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--accent-green); background: #000; object-fit: contain; }
+    .matches-list { display: flex; flex-direction: column; gap: 12px; }
+    .match-item { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px); cursor: pointer; transition: border-color 0.2s, transform 0.2s; }
+    .match-item:hover { border-color: var(--accent-green); transform: translateY(-2px); }
+    
+    .team-box { display: flex; align-items: center; gap: 10px; width: 40%; }
+    .team-box.away { justify-content: flex-end; }
+    .team-logo { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--accent-green); background: #000; object-fit: contain; }
+    .score-badge { background: #06090e; border: 1px solid var(--accent-green); color: var(--accent-green); padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 16px; }
 
-    .video-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 9999; }
-    .video-content { position: relative; background: #121824; border: 2px solid var(--accent-green); border-radius: 12px; padding: 20px; width: 90%; max-width: 700px; box-shadow: 0 0 30px rgba(0,255,135,0.3); }
+    /* Modal Styles for Match Images */
+    .video-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 9999; }
+    .video-content { position: relative; background: #121824; border: 2px solid var(--accent-green); border-radius: 12px; padding: 20px; width: 90%; max-width: 650px; box-shadow: 0 0 30px rgba(0,255,135,0.3); text-align: center; }
     .close-video-btn { position: absolute; top: 10px; right: 10px; background: #ef4444; color: #fff; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; z-index: 10000; display: flex; justify-content: center; align-items: center; transition: transform 0.2s; }
     .close-video-btn:hover { transform: scale(1.1); background: #dc2626; }
     
-    .play-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 8px; z-index: 10; cursor: pointer; }
-    .play-btn { background: var(--accent-green); color: #000; border: none; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 0 0 15px rgba(0,255,135,0.6); transition: transform 0.2s; }
-    .play-btn:hover { transform: scale(1.05); }
+    .match-images-container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 15px; }
+    .player-card-preview { flex: 1; min-width: 240px; }
+    .player-card-preview img { width: 100%; border-radius: 8px; border: 1px solid var(--accent-green); background: #000; object-fit: cover; max-height: 350px; }
+    .player-card-preview p { color: var(--accent-green); font-weight: bold; margin-bottom: 8px; font-size: 16px; }
 
     /* Background Slideshow (.jpg) */
     .bg-slideshow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; }
@@ -67,17 +70,21 @@
     <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
   </div>
 
-  <div id="videoModal" class="video-modal" onclick="closeVideoOnBackdrop(event)">
+  <!-- Match Images Modal -->
+  <div id="matchModal" class="video-modal" onclick="closeModalOnBackdrop(event)">
     <div class="video-content" onclick="event.stopPropagation()">
-      <button class="close-video-btn" onclick="closeVideo()">&times;</button>
-      <div style="position: relative; margin-top: 15px;">
-        <div id="playOverlay" class="play-overlay" onclick="startVideoWithSound()">
-          <button class="play-btn">🔊 Watch Intro With Sound</button>
+      <button class="close-video-btn" onclick="closeMatchModal()">&times;</button>
+      <h3 style="color:var(--accent-green); margin-top:5px; text-transform:uppercase;">Match Showcase</h3>
+      
+      <div class="match-images-container">
+        <div class="player-card-preview">
+          <p id="modalHomeName">Home Team</p>
+          <img id="modalHomeImg" src="" alt="Home Image">
         </div>
-        <video id="promoVideo" controls style="width:100%; display:block; border-radius:8px;">
-          <source src="intro.mp4" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
+        <div class="player-card-preview">
+          <p id="modalAwayName">Away Team</p>
+          <img id="modalAwayImg" src="" alt="Away Image">
+        </div>
       </div>
     </div>
   </div>
@@ -86,25 +93,14 @@
     <h1>ULTIMATE TEAM <span>LEAGUE</span></h1>
     
     <div class="nav">
-      <a href="index.html" class="active">Standings</a>
+      <a href="index.html">Standings</a>
       <a href="predictions.html">Predictions</a>
-      <a href="matches.html">Matches</a>
+      <a href="matches.html" class="active">Matches</a>
     </div>
 
-    <h2>🏆 LEAGUE TABLE</h2>
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th style="text-align:left;">Team</th>
-            <th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th>
-          </tr>
-        </thead>
-        <tbody id="standings-body">
-          <tr><td colspan="8">Loading Standings...</td></tr>
-        </tbody>
-      </table>
+    <h2>⚽ ALL MATCHES (Click match to view)</h2>
+    <div class="matches-list" id="matches-container">
+      <div style="text-align:center;">Loading Matches...</div>
     </div>
   </div>
 
@@ -124,78 +120,86 @@
       'Seif': './seif.png'
     };
 
+    // ربط أسماء الفرق بصورهم بصيغة PNG التي قمت بإنشائها
+    const TEAM_CUSTOM_IMAGES = {
+      'Ahd': './ahd1.png',
+      'Angle': './angle2.png',
+      'Desoky': './desoky3.png',
+      'Eslam': './eslam4.png',
+      'Kamal': './kamal5.png',
+      'Loay': './loay6.png',
+      'Seif': './seif7.png'
+    };
+
     window.addEventListener('DOMContentLoaded', () => {
       if (window.supabase) {
         db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        loadStandings();
+        loadMatches();
       }
     });
 
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeVideo(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMatchModal();
+    });
 
-    function startVideoWithSound() {
-      const video = document.getElementById('promoVideo');
-      const overlay = document.getElementById('playOverlay');
-      if (video) { video.muted = false; video.play(); overlay.style.display = 'none'; }
-    }
-
-    async function loadStandings() {
+    async function loadMatches() {
       try {
         if (!db) return;
         const { data: matches } = await db.from('matches').select('*');
         if (!matches) return;
 
-        const stats = {};
-        Object.keys(TEAM_LOGOS).forEach(team => {
-          stats[team] = { name: team, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0 };
-        });
-
-        matches.forEach(m => {
-          if (m.home_score !== null && m.away_score !== null && m.home_score !== undefined) {
-            const h = m.home_team; const a = m.away_team;
-            const hs = parseInt(m.home_score); const as = parseInt(m.away_score);
-
-            if (stats[h] && stats[a]) {
-              stats[h].p++; stats[a].p++;
-              stats[h].gf += hs; stats[h].ga += as;
-              stats[a].gf += as; stats[a].ga += hs;
-
-              if (hs > as) { stats[h].w++; stats[h].pts += 3; stats[a].l++; }
-              else if (as > hs) { stats[a].w++; stats[a].pts += 3; stats[h].l++; }
-              else { stats[h].d++; stats[h].pts += 1; stats[a].d++; stats[a].pts += 1; }
-            }
-          }
-        });
-
-        let tableArray = Object.values(stats);
-        tableArray.forEach(t => t.gd = t.gf - t.ga);
-        tableArray.sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
-
         let html = '';
-        tableArray.forEach((t, i) => {
-          const logo = TEAM_LOGOS[t.name] ? `<img src="${TEAM_LOGOS[t.name]}" class="team-logo">` : '';
+        matches.matchesArray = matches; // حفظ البيانات مؤقتاً
+        matches.forEach((m, index) => {
+          const homeLogo = TEAM_LOGOS[m.home_team] ? `<img src="${TEAM_LOGOS[m.home_team]}" class="team-logo">` : '';
+          const awayLogo = TEAM_LOGOS[m.away_team] ? `<img src="${TEAM_LOGOS[m.away_team]}" class="team-logo">` : '';
+          
+          const scoreDisplay = (m.home_score !== null && m.home_score !== undefined) 
+            ? `${m.home_score} - ${m.away_score}` 
+            : 'VS';
+
           html += `
-            <tr>
-              <td>${i + 1}</td>
-              <td class="team-cell">${logo} <span>${t.name}</span></td>
-              <td>${t.p}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td>
-              <td>${t.gd > 0 ? '+' + t.gd : t.gd}</td>
-              <td style="font-weight:bold; color:var(--accent-green);">${t.pts}</td>
-            </tr>
+            <div class="match-item" onclick="openMatchModal('${m.home_team}', '${m.away_team}')">
+              <div class="team-box">${homeLogo} <span>${m.home_team}</span></div>
+              <div class="score-badge">${scoreDisplay}</div>
+              <div class="team-box away"><span>${m.away_team}</span> ${awayLogo}</div>
+            </div>
           `;
         });
 
-        document.getElementById('standings-body').innerHTML = html;
-      } catch (err) { console.error(err); }
+        document.getElementById('matches-container').innerHTML = html;
+
+      } catch (err) {
+        console.error(err);
+      }
     }
 
-    function closeVideo() {
-      const vid = document.getElementById('promoVideo');
-      if (vid) vid.pause();
-      document.getElementById('videoModal').style.display = 'none';
+    function openMatchModal(homeTeam, awayTeam) {
+      const modal = document.getElementById('matchModal');
+      const homeImg = document.getElementById('modalHomeImg');
+      const awayImg = document.getElementById('modalAwayImg');
+      const homeName = document.getElementById('modalHomeName');
+      const awayName = document.getElementById('modalAwayName');
+
+      // تعيين الأسماء والصور بناءً على القاموس
+      homeName.innerText = homeTeam;
+      awayName.innerText = awayTeam;
+
+      homeImg.src = TEAM_CUSTOM_IMAGES[homeTeam] || '';
+      awayImg.src = TEAM_CUSTOM_IMAGES[awayTeam] || '';
+
+      modal.style.display = 'flex';
     }
 
-    function closeVideoOnBackdrop(e) { if (e.target.id === 'videoModal') closeVideo(); }
+    function closeMatchModal() {
+      document.getElementById('matchModal').style.display = 'none';
+    }
+
+    function closeModalOnBackdrop(e) {
+      if (e.target.id === 'matchModal') {
+        closeMatchModal();
+      }
+    }
   </script>
 </body>
 </html>

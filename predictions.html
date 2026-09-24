@@ -34,8 +34,12 @@
     .login-btn:hover { transform: scale(1.02); }
 
     #predictionsContent { display: none; }
-    .user-welcome { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 25px; }
+    .user-welcome { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
     .user-welcome span { color: var(--accent-green); font-weight: bold; font-size: 1.1rem; }
+    
+    .total-score-box { background: rgba(0, 255, 135, 0.1); border: 1px solid var(--accent-green); padding: 6px 15px; border-radius: 6px; font-weight: bold; font-size: 1.1rem; color: #fff; }
+    .total-score-box span { color: var(--accent-green); font-size: 1.3rem; }
+
     .logout-btn { background: #ef4444; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
     .deadline-card { background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; padding: 12px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
@@ -108,6 +112,7 @@
     <div id="predictionsContent">
       <div class="user-welcome">
         <div>Welcome, <span id="displayName"></span></div>
+        <div class="total-score-box">⭐ Total Score: <span id="totalScoreVal">0</span> pts</div>
         <button class="logout-btn" onclick="logoutUser()">Change Name</button>
       </div>
 
@@ -116,9 +121,9 @@
       <div class="rules-card">
         <h4>📊 Prediction Scoring System (نظام نقاط التوقعات)</h4>
         <ul>
-          <li><strong>النتيجة الصحيحة بالظبط (Exact Score):</strong> تحصل على <strong>3 نقاط</strong> إذا توقعت فوز الفريقين وأهدافهم بدقة[cite: 6].</li>
-          <li><strong>توقع الفائز أو التعادل فقط (Correct Winner/Draw):</strong> تحصل على <strong>نقطة واحدة (1)</strong> إذا توقعت الفائز صح بس الأهداف غلط[cite: 6].</li>
-          <li><strong>الخطأ (Incorrect):</strong> <strong>0 نقاط</strong> إذا خالفت النتيجة توقعك تماماً[cite: 6].</li>
+          <li><strong>النتيجة الصحيحة بالظبط (Exact Score):</strong> تحصل على <strong>3 نقاط</strong>[cite: 6].</li>
+          <li><strong>توقع الفائز أو التعادل فقط (Correct Winner/Draw):</strong> تحصل على <strong>نقطة واحدة (1)</strong>[cite: 6].</li>
+          <li><strong>الخطأ (Incorrect):</strong> <strong>0 نقاط</strong>[cite: 6].</li>
         </ul>
       </div>
 
@@ -673,6 +678,8 @@
         const { data, error } = await db.from('predictions').select('*').eq('user_id', currentUser);
         if (error) throw error;
 
+        let totalPoints = 0;
+
         if (data) {
           const idToMatch = {};
           for (let key in matchesMap) {
@@ -689,7 +696,6 @@
                 if (hInput) hInput.value = p.predicted_home_score;
                 if (aInput) aInput.value = p.predicted_away_score;
 
-                // إظهار النتيجة الحقيقية والنقاط لو المباراة اتلعبت
                 const matchObj = matchesMap[matchKey];
                 if (matchObj && matchObj.home_score !== null && matchObj.home_score !== undefined && 
                     matchObj.away_score !== null && matchObj.away_score !== undefined) {
@@ -704,6 +710,8 @@
                   ) {
                     points = 1;
                   }
+
+                  totalPoints += points;
 
                   const rowEl = document.getElementById(`row_r${struct.r}_m${struct.m}`);
                   if (rowEl) {
@@ -720,6 +728,10 @@
             }
           });
         }
+
+        const totalScoreEl = document.getElementById('totalScoreVal');
+        if (totalScoreEl) totalScoreEl.innerText = totalPoints;
+
       } catch (err) {
         console.error('Error loading predictions:', err);
       }

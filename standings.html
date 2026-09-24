@@ -4,24 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>الترتيب والمباريات - Ultimate Team League</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
     body { font-family: system-ui, -apple-system, sans-serif; background: #0b1329; color: #fff; margin: 0; padding: 15px; }
     h1, h2 { text-align: center; color: #38bdf8; margin-bottom: 10px; }
     .container { max-width: 900px; margin: 0 auto; }
+    
+    /* أزرار التنقل بين الصفحات */
     .nav { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
     .nav a { color: #fff; text-decoration: none; padding: 10px 20px; background: #1e293b; border-radius: 8px; font-weight: bold; border: 1px solid #334155; }
     .nav a.active { background: #0284c7; border-color: #38bdf8; }
     
-    /* Table Styling */
+    /* تنسيق جدول الترتيب */
     .table-responsive { overflow-x: auto; margin-bottom: 30px; }
     table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; }
     th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #334155; font-size: 15px; }
     th { background: #0284c7; color: #fff; font-weight: bold; }
     .player-cell { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: bold; }
-    .team-logo { width: 32px; height: 32px; object-fit: contain; border-radius: 4px; }
+    .team-logo { width: 35px; height: 35px; object-fit: contain; border-radius: 4px; }
     
-    /* Matches Styling */
+    /* تنسيق كروت المباريات */
     .matches-grid { display: flex; flex-direction: column; gap: 12px; }
     .match-card { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 12px 15px; border-radius: 10px; border: 1px solid #334155; }
     .score-box { background: #0f172a; padding: 6px 14px; border-radius: 8px; font-weight: bold; color: #38bdf8; border: 1px solid #475569; font-size: 16px; min-width: 60px; text-align: center; }
@@ -32,6 +34,7 @@
   <div class="container">
     <h1>🏆 Ultimate Team League 🏆</h1>
     
+    <!-- أزرار التنقل -->
     <div class="nav">
       <a href="index.html">صفحة التوقعات</a>
       <a href="standings.html" class="active">جدول الترتيب والمباريات</a>
@@ -69,7 +72,8 @@
   <script>
     const SUPABASE_URL = 'https://ffdltukfzqxqrcpvrxxe.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZGx0dWtmenF4cXJjcHZyeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDc5NDQsImV4cCI6MjEwNTgyMzk0NH0.utVnf2aOG9yxRZoYlAoziDH_LY3Bvd3KkkmcwdY-IoY';
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const TEAM_LOGOS = {
       'Ahd': './ahd.jpeg',
@@ -87,7 +91,11 @@
       try {
         const { data: matches, error } = await db.from('matches').select('*').order('id', { ascending: true });
 
-        if (error) throw error;
+        if (error) {
+          console.error(error);
+          document.getElementById('standings-body').innerHTML = `<tr><td colspan="10" style="color:red;">خطأ: ${error.message}</td></tr>`;
+          return;
+        }
 
         const stats = {};
         PLAYERS.forEach(p => {
@@ -99,7 +107,7 @@
 
         if (matches && matches.length > 0) {
           matches.forEach(m => {
-            // حساب الإحصائيات في حالة وجود نتيجة مسجلة للمباراة
+            // حساب الإحصائيات لو المباراة اتلعبت وتسجلت النتيجة
             if (m.home_score !== null && m.away_score !== null && m.home_score !== undefined && m.away_score !== undefined) {
               const h = m.home_team;
               const a = m.away_team;
@@ -124,7 +132,7 @@
               }
             }
 
-            // تجميع وتنسيق قائمة المباريات والجولات
+            // عرض الجولات
             if (m.round_no !== currentRound) {
               currentRound = m.round_no;
               matchesHtml += `<h3 style="color:#38bdf8; margin-top:25px; border-bottom:1px solid #334155; padding-bottom:5px; text-align:center;">الجولة ${currentRound}</h3>`;
@@ -148,11 +156,9 @@
               </div>
             `;
           });
-        } else {
-          matchesHtml = '<p style="text-align:center; color:red;">لا توجد مباريات للعرض!</p>';
         }
 
-        // ترتيب الأندية حسب النقاط ثم فارق الأهداف ثم الأهداف المسجلة
+        // ترتيب الأندية حسب النقاط ثم فارق الأهداف
         const sorted = Object.values(stats).map(s => {
           s.GD = s.GF - s.GA;
           return s;
@@ -182,11 +188,10 @@
 
       } catch (err) {
         console.error(err);
-        document.getElementById('standings-body').innerHTML = '<tr><td colspan="10" style="color:red;">خطأ أثناء تحميل البيانات!</td></tr>';
       }
     }
 
-    loadData();
+    window.onload = loadData;
   </script>
 </body>
 </html>

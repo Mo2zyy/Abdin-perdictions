@@ -4,7 +4,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const TEAM_LOGOS = {
-  'Ahd': 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Flag_of_Portugal.svg',
+  'Ahd': 'https://en.wikipedia.org/wiki/Portugal_national_football_team#/media/File:Portugal_national_football_team_logo.svg',
   'Angle': 'https://upload.wikimedia.org/wikipedia/commons/e/e0/National_Bank_of_Egypt_SC_logo.png',
   'Desoky': 'https://upload.wikimedia.org/wikipedia/en/7/70/Villarreal_CF_logo.svg',
   'Eslam': 'https://upload.wikimedia.org/wikipedia/en/c/c5/Al_Nassr_FC_logo.svg',

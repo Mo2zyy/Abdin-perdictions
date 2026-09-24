@@ -10,7 +10,7 @@ const TEAM_LOGOS = {
   'Eslam': 'https://upload.wikimedia.org/wikipedia/en/c/c5/Al_Nassr_FC_logo.svg',
   'Kamal': 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
   'Loay': 'https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg',
-  'Seif': 'https://upload.wikimedia.org/wikipedia/en/8/8c/Al_Ahly_SC_logo.svg'
+  'Seif': 'https://assets.futbin.com/fifa/24/clubs/111130.png' // الأهلي المصري'
 };
 
 let currentUser = null;

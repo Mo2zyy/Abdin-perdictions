@@ -6,7 +6,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const TEAM_LOGOS = {
   'Ahd': './ahd.jpeg',
   'Angle': './angle.jpeg',
-  'Desoky': './esoky.jpeg',
+  'Desoky': './Desoky.jpeg',
   'Eslam': './eslam.jpeg',
   'Kamal': './kamal.jpeg',
   'Loay': './/Loay.jpeg',
@@ -70,8 +70,8 @@ async function loadMatches() {
       }
 
       const p = map[m.id] || {};
-      const homeLogo = TEAM_LOGOS[m.home_team] ? `<img src="${TEAM_LOGOS[m.home_team]}" style="width:24px; height:24px; vertical-align:middle; margin:0 5px;">` : '';
-      const awayLogo = TEAM_LOGOS[m.away_team] ? `<img src="${TEAM_LOGOS[m.away_team]}" style="width:24px; height:24px; vertical-align:middle; margin:0 5px;">` : '';
+      const homeLogo = TEAM_LOGOS[m.home_team] ? `<img src="${TEAM_LOGOS[m.home_team]}" style="width:24px; height:24px; vertical-align:middle; margin:0 24px;">` : '';
+      const awayLogo = TEAM_LOGOS[m.away_team] ? `<img src="${TEAM_LOGOS[m.away_team]}" style="width:24px; height:24px; vertical-align:middle; margin:0 24px;">` : '';
 
       html += `
         <div class="match-card" data-match-id="${m.id}" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; background:#1e293b; padding:10px; border-radius:8px;">

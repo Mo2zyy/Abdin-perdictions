@@ -8,15 +8,15 @@
   <style>
     :root {
       --bg-dark: #0a0e14;
-      --card-bg: #121824;
+      --card-bg: rgba(18, 24, 36, 0.90); /* شفافية بسيطة للكروت عشان تظهر الخلفية بشكل أنيق */
       --accent-green: #00ff87;
       --text-white: #f8fafc;
       --border-color: #1e293b;
     }
 
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-white); margin: 0; padding: 20px; }
-    .container { max-width: 800px; margin: 0 auto; }
+    body { background-color: var(--bg-dark); color: var(--text-white); margin: 0; padding: 20px; position: relative; min-height: 100vh; }
+    .container { max-width: 800px; margin: 0 auto; position: relative; z-index: 1; }
     
     h1 { text-align: center; color: var(--text-white); font-weight: 900; letter-spacing: 1px; font-size: 2.2rem; margin-bottom: 10px; }
     h1 span { color: var(--accent-green); }
@@ -24,42 +24,88 @@
     
     /* Navigation Bar */
     .nav { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-    .nav a { color: var(--text-white); text-decoration: none; padding: 10px 18px; background: var(--card-bg); border-radius: 6px; font-weight: bold; border: 1px solid var(--border-color); transition: all 0.2s; font-size: 14px; }
+    .nav a { color: var(--text-white); text-decoration: none; padding: 10px 18px; background: var(--card-bg); border-radius: 6px; font-weight: bold; border: 1px solid var(--border-color); transition: all 0.2s; font-size: 14px; backdrop-filter: blur(5px); }
     .nav a.active { background: var(--accent-green); color: #000; border-color: var(--accent-green); }
     .nav a:hover:not(.active) { border-color: var(--accent-green); }
 
     /* Standings Table */
-    .table-container { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); overflow-x: auto; }
+    .table-container { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); overflow-x: auto; backdrop-filter: blur(10px); }
     table { width: 100%; border-collapse: collapse; text-align: center; }
     th, td { padding: 12px 10px; border-bottom: 1px solid var(--border-color); font-size: 14px; }
-    th { background: #06090e; color: var(--accent-green); font-weight: bold; }
+    th { background: rgba(6, 9, 14, 0.85); color: var(--accent-green); font-weight: bold; }
     tr:last-child td { border-bottom: none; }
     .team-cell { display: flex; align-items: center; gap: 10px; font-weight: bold; text-align: left; }
     .team-logo { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--accent-green); background: #000; object-fit: contain; }
 
     /* Video Popup Modal */
     .video-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 9999; }
-    .video-content { position: relative; background: var(--card-bg); border: 2px solid var(--accent-green); border-radius: 12px; padding: 20px; width: 90%; max-width: 700px; box-shadow: 0 0 30px rgba(0,255,135,0.3); }
-    
-    /* زر الإغلاق داخل الكارت */
+    .video-content { position: relative; background: #121824; border: 2px solid var(--accent-green); border-radius: 12px; padding: 20px; width: 90%; max-width: 700px; box-shadow: 0 0 30px rgba(0,255,135,0.3); }
     .close-video-btn { position: absolute; top: 10px; right: 10px; background: #ef4444; color: #fff; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; z-index: 10000; display: flex; justify-content: center; align-items: center; transition: transform 0.2s; }
     .close-video-btn:hover { transform: scale(1.1); background: #dc2626; }
     
-    /* Overlay Button for Sound Guarantee */
     .play-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 8px; z-index: 10; cursor: pointer; }
     .play-btn { background: var(--accent-green); color: #000; border: none; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 0 0 15px rgba(0,255,135,0.6); transition: transform 0.2s; }
     .play-btn:hover { transform: scale(1.05); }
+
+    /* Background Slideshow CSS */
+    .bg-slideshow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .bg-slideshow div {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      animation: slideAnimation 28s infinite;
+      filter: brightness(0.35); /* تغميق الصور للوضوح */
+    }
+
+    /* توزيع أوقات تبديل الـ 7 صور */
+    .bg-slideshow div:nth-child(1) { background-image: url('./ahd1.jpeg'); animation-delay: 0s; }
+    .bg-slideshow div:nth-child(2) { background-image: url('./angle2.jpeg'); animation-delay: 4s; }
+    .bg-slideshow div:nth-child(3) { background-image: url('./desoky3.jpeg'); animation-delay: 8s; }
+    .bg-slideshow div:nth-child(4) { background-image: url('./eslam4.jpeg'); animation-delay: 12s; }
+    .bg-slideshow div:nth-child(5) { background-image: url('./kamal5.jpeg'); animation-delay: 16s; }
+    .bg-slideshow div:nth-child(6) { background-image: url('./loay6.jpeg'); animation-delay: 20s; }
+    .bg-slideshow div:nth-child(7) { background-image: url('./seif7.jpeg'); animation-delay: 24s; }
+
+    @keyframes slideAnimation {
+      0% { opacity: 0; }
+      5% { opacity: 1; }
+      17% { opacity: 1; }
+      22% { opacity: 0; }
+      100% { opacity: 0; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Video Popup Modal (يغلق عند الضغط خارج الكارت) -->
+  <!-- Background Slideshow Elements -->
+  <div class="bg-slideshow">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+
+  <!-- Video Popup Modal -->
   <div id="videoModal" class="video-modal" onclick="closeVideoOnBackdrop(event)">
     <div class="video-content" onclick="event.stopPropagation()">
       <button class="close-video-btn" onclick="closeVideo()">&times;</button>
       
       <div style="position: relative; margin-top: 15px;">
-        <!-- زر التغلب على حظر الصوت -->
         <div id="playOverlay" class="play-overlay" onclick="startVideoWithSound()">
           <button class="play-btn">🔊 Watch Intro With Sound</button>
         </div>
@@ -126,7 +172,6 @@
       }
     });
 
-    // إغلاق الفيديو بزرار ESC من الكيبورد
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeVideo();

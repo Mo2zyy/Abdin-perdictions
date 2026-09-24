@@ -22,16 +22,27 @@
     h1 span { color: var(--accent-green); }
     h2 { text-align: center; color: var(--accent-green); margin-top: 20px; margin-bottom: 20px; text-transform: uppercase; font-size: 1.4rem; }
     
+    /* Navigation Bar */
     .nav { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
     .nav a { color: var(--text-white); text-decoration: none; padding: 10px 18px; background: var(--card-bg); border-radius: 6px; font-weight: bold; border: 1px solid var(--border-color); transition: all 0.2s; font-size: 14px; }
     .nav a.active { background: var(--accent-green); color: #000; border-color: var(--accent-green); }
     .nav a:hover:not(.active) { border-color: var(--accent-green); }
 
     .matches-grid { display: flex; flex-direction: column; gap: 12px; }
-    .match-card { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 14px 18px; border-radius: 8px; border: 1px solid var(--border-color); }
+    .match-card { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 14px 18px; border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; transition: transform 0.2s, border-color 0.2s; }
+    .match-card:hover { transform: scale(1.01); border-color: var(--accent-green); }
+    
     .player-cell { display: flex; align-items: center; gap: 10px; font-weight: bold; }
     .team-logo { width: 32px; height: 32px; object-fit: contain; border-radius: 50%; border: 1px solid var(--accent-green); background: #000; }
     .score-box { background: #06090e; padding: 6px 14px; border-radius: 6px; font-weight: bold; color: var(--accent-green); border: 1px solid var(--border-color); font-size: 16px; min-width: 80px; text-align: center; }
+
+    /* Match Detail Modal */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { position: relative; background: var(--card-bg); border: 2px solid var(--accent-green); border-radius: 12px; padding: 15px; width: 90%; max-width: 600px; text-align: center; box-shadow: 0 0 25px rgba(0,255,135,0.2); }
+    .close-btn { position: absolute; top: -12px; right: -12px; background: #ef4444; color: #fff; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.5); z-index: 1001; }
+    .close-btn:hover { background: #dc2626; }
+    .match-vs-banner { width: 100%; height: auto; max-height: 350px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 10px; }
+    .modal-title { color: var(--accent-green); font-weight: 800; margin-bottom: 10px; font-size: 1.2rem; }
   </style>
 </head>
 <body>
@@ -51,6 +62,15 @@
     </div>
   </div>
 
+  <!-- Match VS Image Modal -->
+  <div id="match-modal" class="modal-overlay" onclick="closeOnOverlay(event)">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeMatchModal()">&times;</button>
+      <div id="modal-match-title" class="modal-title"></div>
+      <img id="modal-vs-image" class="match-vs-banner" src="" alt="Match VS Image">
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://ffdltukfzqxqrcpvrxxe.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZGx0dWtmenF4cXJjcHZyeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDc5NDQsImV4cCI6MjEwNTgyMzk0NH0.utVnf2aOG9yxRZoYlAoziDH_LY3Bvd3KkkmcwdY-IoY';
@@ -65,6 +85,13 @@
       'Kamal': './kamal.jpeg',
       'Loay': './loay.jpeg',
       'Seif': './seif.jpeg'
+    };
+
+    // خريطة صور المواجهات (يمكنك وضع اسم كل فريقين مع اسم ملف الصورة)
+    const MATCH_VS_IMAGES = {
+      'Desoky-Ahd': './desoky_vs_ahd.jpeg',
+      'Ahd-Desoky': './desoky_vs_ahd.jpeg'
+      // أضف بقية صور المواجهات بنفس الطريقة
     };
 
     async function loadMatches() {
@@ -94,7 +121,7 @@
               : 'VS';
 
             matchesHtml += `
-              <div class="match-card">
+              <div class="match-card" onclick="openMatchModal('${m.home_team}', '${m.away_team}')">
                 <div class="player-cell" style="flex:1; justify-content:flex-start;">
                   ${hLogo} <span>${m.home_team}</span>
                 </div>
@@ -111,6 +138,28 @@
 
       } catch (err) {
         console.error(err);
+      }
+    }
+
+    function openMatchModal(home, away) {
+      const title = `${home} VS ${away}`;
+      const pairKey = `${home}-${away}`;
+      
+      // إذا كانت الصورة موجودة في MATCH_VS_IMAGES يتم عرضها، وإلا يتم استخدام صورة افتراضية
+      const imageSrc = MATCH_VS_IMAGES[pairKey] || './vs-default.jpeg';
+
+      document.getElementById('modal-match-title').innerText = title;
+      document.getElementById('modal-vs-image').src = imageSrc;
+      document.getElementById('match-modal').style.display = 'flex';
+    }
+
+    function closeMatchModal() {
+      document.getElementById('match-modal').style.display = 'none';
+    }
+
+    function closeOnOverlay(event) {
+      if (event.target.id === 'match-modal') {
+        closeMatchModal();
       }
     }
 

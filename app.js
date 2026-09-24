@@ -6,11 +6,11 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const TEAM_LOGOS = {
   'Ahd': './ahd.jpeg',
   'Angle': './angle.jpeg',
-  'Desoky': './desoky.jpeg',
+  'Desoky': './Desoky.jpeg',
   'Eslam': './eslam.jpeg',
   'Kamal': './kamal.jpeg',
-  'Loay': './loay.jpeg',
-  'Seif': './seif.jpeg'
+  'Loay': './/Loay.jpeg',
+  'Seif': './Seif.jpeg'
 };
 
 let currentUser = null;

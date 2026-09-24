@@ -1,1 +1,0 @@
-# Abdin-perdictions

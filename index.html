@@ -75,11 +75,12 @@
 </head>
 <body>
 
+  <!-- خلفية الصور المتغيرة -->
   <div class="bg-slideshow">
     <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
   </div>
 
-  <!-- Intro Video Modal (يظهر عند فتح الموقع) -->
+  <!-- Intro Video Modal -->
   <div id="videoModal" class="video-modal" onclick="closeVideoOnBackdrop(event)">
     <div class="video-content" onclick="event.stopPropagation()">
       <button class="close-video-btn" onclick="closeVideo()">&times;</button>
@@ -95,7 +96,7 @@
     </div>
   </div>
 
-  <!-- Team Stats & Image Modal (يظهر عند الضغط على الفريق) -->
+  <!-- Team Stats Modal -->
   <div id="teamModal" class="video-modal" style="display: none;" onclick="closeTeamModalOnBackdrop(event)">
     <div class="video-content" onclick="event.stopPropagation()">
       <button class="close-video-btn" onclick="closeTeamModal()">&times;</button>

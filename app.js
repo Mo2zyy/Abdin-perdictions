@@ -173,7 +173,7 @@ async function savePredictions() {
   }
 }
 
-// تحميل توقعات المستخدم السابقة ومقارنتها بالنتائج الحقيقية وعرض النقاط (النسخة النهائية المضمونة)
+// تحميل توقعات المستخدم السابقة ومقارنتها بالنتائج الحقيقية وعرض النقاط (نسخة مضمونة 100%)
 async function loadUserPredictions() {
   if (!currentUser) return;
 
@@ -220,18 +220,18 @@ async function loadUserPredictions() {
                 points = 1;
               }
 
-              // إنشاء صندوق عرض النتيجة الفعليّة والنقاط تحت الماتش مباشرة
-              let parentBox = hInput.parentElement;
-              let infoBox = parentBox.querySelector('.match-result-info');
+              // الوصول للعنصر الحاضن للماتش (الصف كامل) عشان نضمن إن النتيجة تظهر بوضوح تحت الماتش
+              let matchRow = hInput.closest('.match-row') || hInput.parentElement.parentElement;
+              let infoBox = matchRow.querySelector('.match-result-info');
               
               if (!infoBox) {
                 infoBox = document.createElement('div');
                 infoBox.className = 'match-result-info';
-                infoBox.style.cssText = 'font-size: 11px; color: #00ff87; background: rgba(0, 255, 135, 0.1); padding: 3px 6px; border-radius: 4px; margin-top: 4px; text-align: center; font-weight: bold; width: 100%;';
-                parentBox.appendChild(infoBox);
+                infoBox.style.cssText = 'font-size: 12px; color: #00ff87; background: rgba(0, 0, 0, 0.6); padding: 4px 10px; border-radius: 6px; margin-top: 6px; text-align: center; font-weight: bold; width: 100%; border: 1px solid #00ff87;';
+                matchRow.appendChild(infoBox);
               }
               
-              infoBox.innerHTML = `النتيجة الفعلية: (${realMatch.home_score} - ${realMatch.away_score}) | النقاط: <span style="color: #ffcc00;">+${points}</span>`;
+              infoBox.innerHTML = `النتيجة الفعلية: (${realMatch.home_score} - ${realMatch.away_score}) | النقاط المكتسبة: <span style="color: #ffcc00;">+${points}</span>`;
             }
           }
         }

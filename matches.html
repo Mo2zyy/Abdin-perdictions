@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EA FC League - Matches</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <style>
+    :root {
+      --bg-dark: #0a0e14;
+      --card-bg: #121824;
+      --accent-green: #00ff87;
+      --text-white: #f8fafc;
+      --border-color: #1e293b;
+    }
+
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-white); margin: 0; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    
+    h1 { text-align: center; color: var(--text-white); font-weight: 900; letter-spacing: 1px; font-size: 2.2rem; margin-bottom: 10px; }
+    h1 span { color: var(--accent-green); }
+    h2 { text-align: center; color: var(--accent-green); margin-top: 20px; margin-bottom: 20px; text-transform: uppercase; font-size: 1.4rem; }
+    
+    .nav { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+    .nav a { color: var(--text-white); text-decoration: none; padding: 10px 18px; background: var(--card-bg); border-radius: 6px; font-weight: bold; border: 1px solid var(--border-color); transition: all 0.2s; font-size: 14px; }
+    .nav a.active { background: var(--accent-green); color: #000; border-color: var(--accent-green); }
+    .nav a:hover:not(.active) { border-color: var(--accent-green); }
+
+    .matches-grid { display: flex; flex-direction: column; gap: 12px; }
+    .match-card { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 14px 18px; border-radius: 8px; border: 1px solid var(--border-color); }
+    .player-cell { display: flex; align-items: center; gap: 10px; font-weight: bold; }
+    .team-logo { width: 32px; height: 32px; object-fit: contain; border-radius: 50%; border: 1px solid var(--accent-green); background: #000; }
+    .score-box { background: #06090e; padding: 6px 14px; border-radius: 6px; font-weight: bold; color: var(--accent-green); border: 1px solid var(--border-color); font-size: 16px; min-width: 80px; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>EA SPORTS <span>FC LEAGUE</span></h1>
+    
+    <div class="nav">
+      <a href="index.html">Predictions</a>
+      <a href="standings.html">Standings</a>
+      <a href="matches.html" class="active">Matches</a>
+    </div>
+
+    <h2>⚽ Matches & Results</h2>
+    <div id="matches-container" class="matches-grid">
+      <p style="text-align:center;">Loading Matches...</p>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://ffdltukfzqxqrcpvrxxe.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZGx0dWtmenF4cXJjcHZyeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDc5NDQsImV4cCI6MjEwNTgyMzk0NH0.utVnf2aOG9yxRZoYlAoziDH_LY3Bvd3KkkmcwdY-IoY';
+    
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const TEAM_LOGOS = {
+      'Ahd': './ahd.jpeg',
+      'Angle': './angle.jpeg',
+      'Desoky': './desoky.jpeg',
+      'Eslam': './eslam.jpeg',
+      'Kamal': './kamal.jpeg',
+      'Loay': './loay.jpeg',
+      'Seif': './seif.jpeg'
+    };
+
+    async function loadMatches() {
+      try {
+        const { data: matches, error } = await db.from('matches').select('*').order('id', { ascending: true });
+
+        if (error) {
+          console.error(error);
+          document.getElementById('matches-container').innerHTML = `<p style="color:red; text-align:center;">Error: ${error.message}</p>`;
+          return;
+        }
+
+        let matchesHtml = '';
+        let currentRound = 0;
+
+        if (matches && matches.length > 0) {
+          matches.forEach(m => {
+            if (m.round_no !== currentRound) {
+              currentRound = m.round_no;
+              matchesHtml += `<h3 style="color:var(--accent-green); margin-top:25px; border-bottom:1px solid var(--border-color); padding-bottom:5px; text-align:center;">Round ${currentRound}</h3>`;
+            }
+
+            const hLogo = TEAM_LOGOS[m.home_team] ? `<img src="${TEAM_LOGOS[m.home_team]}" class="team-logo">` : '';
+            const aLogo = TEAM_LOGOS[m.away_team] ? `<img src="${TEAM_LOGOS[m.away_team]}" class="team-logo">` : '';
+            const scoreDisplay = (m.home_score !== null && m.away_score !== null && m.home_score !== undefined) 
+              ? `${m.home_score} - ${m.away_score}` 
+              : 'VS';
+
+            matchesHtml += `
+              <div class="match-card">
+                <div class="player-cell" style="flex:1; justify-content:flex-start;">
+                  ${hLogo} <span>${m.home_team}</span>
+                </div>
+                <div class="score-box">${scoreDisplay}</div>
+                <div class="player-cell" style="flex:1; justify-content:flex-end;">
+                  <span>${m.away_team}</span> ${aLogo}
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        document.getElementById('matches-container').innerHTML = matchesHtml;
+
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    window.onload = loadMatches;
+  </script>
+</body>
+</html>

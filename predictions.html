@@ -27,29 +27,24 @@
     .nav a.active { background: var(--accent-green); color: #000; border-color: var(--accent-green); }
     .nav a:hover:not(.active) { border-color: var(--accent-green); }
 
-    /* Login Box (Name Only) */
     .login-box { background: var(--card-bg); border: 2px solid var(--accent-green); border-radius: 12px; padding: 30px; text-align: center; max-width: 450px; margin: 50px auto; box-shadow: 0 0 30px rgba(0,255,135,0.2); }
     .login-box input { width: 100%; padding: 12px; margin: 15px 0; background: #06090e; border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 16px; text-align: center; }
     .login-box input:focus { border-color: var(--accent-green); outline: none; }
     .login-btn { background: var(--accent-green); color: #000; border: none; padding: 12px 25px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; transition: transform 0.2s; }
     .login-btn:hover { transform: scale(1.02); }
 
-    /* Predictions Content */
     #predictionsContent { display: none; }
     .user-welcome { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 25px; }
     .user-welcome span { color: var(--accent-green); font-weight: bold; font-size: 1.1rem; }
     .logout-btn { background: #ef4444; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
-    /* Deadlines */
     .deadline-card { background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; padding: 12px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
     .deadline-card span { color: #f87171; font-weight: bold; }
 
-    /* Points & Scoring Rules Card */
     .rules-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 25px; font-size: 13px; line-height: 1.6; }
     .rules-card h4 { color: var(--accent-green); margin-top: 0; text-transform: uppercase; font-size: 1rem; }
     .rules-card ul { padding-left: 20px; margin: 5px 0; color: #cbd5e1; }
 
-    /* Rounds & Matches */
     .round-section { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px; overflow: hidden; backdrop-filter: blur(10px); }
     .round-title { background: rgba(6, 9, 14, 0.85); color: var(--accent-green); padding: 12px 15px; font-weight: bold; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); }
     
@@ -69,7 +64,6 @@
     .btn-action:hover { transform: scale(1.05); }
     .btn-share { background: #3b82f6; color: #fff; box-shadow: 0 0 15px rgba(59,130,246,0.3); }
 
-    /* Background Slideshow */
     .bg-slideshow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; }
     .bg-slideshow div { position: absolute; width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0; animation: slideAnimation 28s infinite; filter: brightness(0.35); }
     .bg-slideshow div:nth-child(1) { background-image: url('./ahd1.png'); animation-delay: 0s; }
@@ -100,7 +94,6 @@
       <a href="matches.html">Matches</a>
     </div>
 
-    <!-- شاشة تسجيل الدخول بالاسم فقط -->
     <div id="loginSection" class="login-box">
       <h3 style="color:var(--accent-green); margin-top:0;">ENTER YOUR NAME</h3>
       <p style="font-size:13px; color:#94a3b8;">Type your name to save and view your match predictions.</p>
@@ -108,7 +101,6 @@
       <button class="login-btn" onclick="loginUser()">Enter Predictions</button>
     </div>
 
-    <!-- محتوى التوقعات -->
     <div id="predictionsContent">
       <div class="user-welcome">
         <div>Welcome, <span id="displayName"></span></div>
@@ -117,7 +109,6 @@
 
       <h2>🎯 MATCH PREDICTIONS & POINTS SYSTEM</h2>
 
-      <!-- نظام نقاط التوقعات -->
       <div class="rules-card">
         <h4>📊 Prediction Scoring System (نظام نقاط التوقعات)</h4>
         <ul>
@@ -316,7 +307,6 @@
           <div class="score-inputs"><input type="number" id="p_r7_m3_h"> - <input type="number" id="p_r7_m3_a"></div>
         </div>
       </div>
-
 
       <!-- DAY 2 - RETURN LEG -->
       <h3 style="color:var(--accent-green); border-bottom: 2px solid var(--accent-green); padding-bottom: 5px; margin-top: 40px;">DAY 2 - RETURN LEG (Rounds 8 to 14)</h3>
@@ -524,59 +514,45 @@
     let matchesMap = {};
 
     const matchesStructure = [
-      // Round 1
       { r: 1, m: 1, home: 'Desoky', away: 'Seif' },
       { r: 1, m: 2, home: 'Angle', away: 'Eslam' },
       { r: 1, m: 3, home: 'Loay', away: 'Ahd' },
-      // Round 2
       { r: 2, m: 1, home: 'Kamal', away: 'Desoky' },
       { r: 2, m: 2, home: 'Seif', away: 'Loay' },
       { r: 2, m: 3, home: 'Ahd', away: 'Eslam' },
-      // Round 3
       { r: 3, m: 1, home: 'Kamal', away: 'Angle' },
       { r: 3, m: 2, home: 'Desoky', away: 'Loay' },
       { r: 3, m: 3, home: 'Eslam', away: 'Seif' },
-      // Round 4
       { r: 4, m: 1, home: 'Loay', away: 'Kamal' },
       { r: 4, m: 2, home: 'Angle', away: 'Ahd' },
       { r: 4, m: 3, home: 'Eslam', away: 'Desoky' },
-      // Round 5
       { r: 5, m: 1, home: 'Ahd', away: 'Kamal' },
       { r: 5, m: 2, home: 'Loay', away: 'Eslam' },
       { r: 5, m: 3, home: 'Seif', away: 'Angle' },
-      // Round 6
       { r: 6, m: 1, home: 'Eslam', away: 'Kamal' },
       { r: 6, m: 2, home: 'Ahd', away: 'Seif' },
       { r: 6, m: 3, home: 'Desoky', away: 'Angle' },
-      // Round 7
       { r: 7, m: 1, home: 'Kamal', away: 'Seif' },
       { r: 7, m: 2, home: 'Desoky', away: 'Ahd' },
       { r: 7, m: 3, home: 'Loay', away: 'Angle' },
-      // Round 8
       { r: 8, m: 1, home: 'Seif', away: 'Desoky' },
       { r: 8, m: 2, home: 'Eslam', away: 'Angle' },
       { r: 8, m: 3, home: 'Ahd', away: 'Loay' },
-      // Round 9
       { r: 9, m: 1, home: 'Desoky', away: 'Kamal' },
       { r: 9, m: 2, home: 'Loay', away: 'Seif' },
       { r: 9, m: 3, home: 'Eslam', away: 'Ahd' },
-      // Round 10
       { r: 10, m: 1, home: 'Angle', away: 'Kamal' },
       { r: 10, m: 2, home: 'Loay', away: 'Desoky' },
       { r: 10, m: 3, home: 'Seif', away: 'Eslam' },
-      // Round 11
       { r: 11, m: 1, home: 'Kamal', away: 'Loay' },
       { r: 11, m: 2, home: 'Ahd', away: 'Angle' },
       { r: 11, m: 3, home: 'Desoky', away: 'Eslam' },
-      // Round 12
       { r: 12, m: 1, home: 'Kamal', away: 'Ahd' },
       { r: 12, m: 2, home: 'Eslam', away: 'Loay' },
       { r: 12, m: 3, home: 'Angle', away: 'Seif' },
-      // Round 13
       { r: 13, m: 1, home: 'Kamal', away: 'Eslam' },
       { r: 13, m: 2, home: 'Seif', away: 'Ahd' },
       { r: 13, m: 3, home: 'Angle', away: 'Desoky' },
-      // Round 14
       { r: 14, m: 1, home: 'Seif', away: 'Kamal' },
       { r: 14, m: 2, home: 'Ahd', away: 'Desoky' },
       { r: 14, m: 3, home: 'Angle', away: 'Loay' }
@@ -649,7 +625,6 @@
         return;
       }
 
-      let userIdNum = Math.abs(hashCode(currentUser)) % 1000000;
       let upsertData = [];
 
       for (let item of matchesStructure) {
@@ -663,7 +638,7 @@
 
         if (hInput && aInput && hInput.value !== '' && aInput.value !== '') {
           upsertData.push({
-            user_id: userIdNum,
+            user_id: currentUser,
             match_id: matchId,
             predicted_home_score: parseInt(hInput.value),
             predicted_away_score: parseInt(aInput.value)
@@ -688,10 +663,9 @@
 
     async function loadUserPredictions() {
       if (!currentUser) return;
-      let userIdNum = Math.abs(hashCode(currentUser)) % 1000000;
 
       try {
-        const { data, error } = await db.from('predictions').select('*').eq('user_id', userIdNum);
+        const { data, error } = await db.from('predictions').select('*').eq('user_id', currentUser);
         if (error) throw error;
 
         if (data) {
@@ -716,15 +690,6 @@
       } catch (err) {
         console.error('Error loading predictions:', err);
       }
-    }
-
-    function hashCode(str) {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = (hash << 5) - hash + str.charCodeAt(i);
-        hash |= 0;
-      }
-      return hash;
     }
 
     function sharePredictions() {

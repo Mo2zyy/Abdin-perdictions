@@ -2,6 +2,16 @@ const SUPABASE_URL = 'https://ffdltukfzqxqrcpvrxxe.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZGx0dWtmenF4cXJjcHZyeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDc5NDQsImV4cCI6MjEwNTgyMzk0NH0.utVnf2aOG9yxRZoYlAoziDH_LY3Bvd3KkkmcwdY-IoY';
 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const TEAM_LOGOS = {
+  'Ahd': 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Flag_of_Portugal.svg',
+  'Angle': 'https://upload.wikimedia.org/wikipedia/commons/e/e0/National_Bank_of_Egypt_SC_logo.png',
+  'Desoky': 'https://upload.wikimedia.org/wikipedia/en/7/70/Villarreal_CF_logo.svg',
+  'Eslam': 'https://upload.wikimedia.org/wikipedia/en/c/c5/Al_Nassr_FC_logo.svg',
+  'Kamal': 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
+  'Loay': 'https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg',
+  'Seif': 'https://upload.wikimedia.org/wikipedia/en/8/8c/Al_Ahly_SC_logo.svg'
+};
+
 let currentUser = null;
 
 async function login() {

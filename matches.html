@@ -38,11 +38,24 @@
 
     /* Match Detail Modal */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; }
-    .modal-content { position: relative; background: var(--card-bg); border: 2px solid var(--accent-green); border-radius: 12px; padding: 15px; width: 90%; max-width: 600px; text-align: center; box-shadow: 0 0 25px rgba(0,255,135,0.2); }
+    .modal-content { position: relative; background: var(--card-bg); border: 2px solid var(--accent-green); border-radius: 12px; padding: 20px; width: 90%; max-width: 650px; text-align: center; box-shadow: 0 0 25px rgba(0,255,135,0.2); }
     .close-btn { position: absolute; top: -12px; right: -12px; background: #ef4444; color: #fff; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.5); z-index: 1001; }
     .close-btn:hover { background: #dc2626; }
-    .match-vs-banner { width: 100%; height: auto; max-height: 350px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 10px; }
-    .modal-title { color: var(--accent-green); font-weight: 800; margin-bottom: 10px; font-size: 1.2rem; }
+    
+    .modal-title { color: var(--accent-green); font-weight: 800; margin-bottom: 20px; font-size: 1.3rem; }
+    
+    /* VS Showcase Layout */
+    .vs-container { display: flex; align-items: center; justify-content: space-around; gap: 15px; margin-top: 10px; }
+    .vs-player { display: flex; flex-direction: column; align-items: center; flex: 1; }
+    .vs-player-img { width: 100%; max-width: 200px; height: 220px; object-fit: cover; border-radius: 10px; border: 2px solid var(--border-color); background: #000; }
+    .vs-player-name { font-weight: bold; font-size: 1.1rem; margin-top: 10px; color: var(--text-white); }
+    .vs-badge { font-size: 2rem; font-weight: 900; color: var(--accent-green); text-shadow: 0 0 10px rgba(0,255,135,0.5); }
+    
+    @media (max-width: 500px) {
+      .vs-player-img { height: 150px; }
+      .vs-badge { font-size: 1.5rem; }
+      .vs-player-name { font-size: 0.95rem; }
+    }
   </style>
 </head>
 <body>
@@ -66,8 +79,21 @@
   <div id="match-modal" class="modal-overlay" onclick="closeOnOverlay(event)">
     <div class="modal-content">
       <button class="close-btn" onclick="closeMatchModal()">&times;</button>
-      <div id="modal-match-title" class="modal-title"></div>
-      <img id="modal-vs-image" class="match-vs-banner" src="" alt="Match VS Image">
+      <div id="modal-match-title" class="modal-title">MATCH DETAILS</div>
+      
+      <div class="vs-container">
+        <div class="vs-player">
+          <img id="modal-home-img" class="vs-player-img" src="" alt="Home Player">
+          <span id="modal-home-name" class="vs-player-name">Home</span>
+        </div>
+        
+        <div class="vs-badge">VS</div>
+        
+        <div class="vs-player">
+          <img id="modal-away-img" class="vs-player-img" src="" alt="Away Player">
+          <span id="modal-away-name" class="vs-player-name">Away</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -77,22 +103,18 @@
     
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // ضع هنا روابط أو مسارات صورة كل لاعب منفصلة
     const TEAM_LOGOS = {
-      'Ahd': './ahd.jpeg',
-      'Angle': './angle.jpeg',
-      'Desoky': './desoky.jpeg',
-      'Eslam': './eslam.jpeg',
-      'Kamal': './kamal.jpeg',
-      'Loay': './loay.jpeg',
-      'Seif': './seif.jpeg'
+'Ahd': './ahd.png',
+  'Angle': './Angle.png',
+  'Desoky': './desoky.png',
+  'Eslam': './eslam.png',
+  'Kamal': 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
+  'Loay': 'https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg',
+  'Seif': './seif.png'
     };
 
-    // خريطة صور المواجهات (يمكنك وضع اسم كل فريقين مع اسم ملف الصورة)
-    const MATCH_VS_IMAGES = {
-      'Desoky-Ahd': './desoky_vs_ahd.jpeg',
-      'Ahd-Desoky': './desoky_vs_ahd.jpeg'
-      // أضف بقية صور المواجهات بنفس الطريقة
-    };
+    const DEFAULT_AVATAR = './default-player.jpeg'; // صورة افتراضية في حال عدم وجود صورة للاعب
 
     async function loadMatches() {
       try {
@@ -121,7 +143,7 @@
               : 'VS';
 
             matchesHtml += `
-              <div class="match-card" onclick="openMatchModal('${m.home_team}', '${m.away_team}')">
+              <div class="match-card" onclick="openMatchModal('${m.home_team}', '${m.away_team}', '${scoreDisplay}')">
                 <div class="player-cell" style="flex:1; justify-content:flex-start;">
                   ${hLogo} <span>${m.home_team}</span>
                 </div>
@@ -141,15 +163,18 @@
       }
     }
 
-    function openMatchModal(home, away) {
-      const title = `${home} VS ${away}`;
-      const pairKey = `${home}-${away}`;
-      
-      // إذا كانت الصورة موجودة في MATCH_VS_IMAGES يتم عرضها، وإلا يتم استخدام صورة افتراضية
-      const imageSrc = MATCH_VS_IMAGES[pairKey] || './vs-default.jpeg';
+    function openMatchModal(home, away, score) {
+      const homeImg = TEAM_LOGOS[home] || DEFAULT_AVATAR;
+      const awayImg = TEAM_LOGOS[away] || DEFAULT_AVATAR;
 
-      document.getElementById('modal-match-title').innerText = title;
-      document.getElementById('modal-vs-image').src = imageSrc;
+      document.getElementById('modal-match-title').innerText = `MATCH DETAILS (${score})`;
+      
+      document.getElementById('modal-home-name').innerText = home;
+      document.getElementById('modal-home-img').src = homeImg;
+      
+      document.getElementById('modal-away-name').innerText = away;
+      document.getElementById('modal-away-img').src = awayImg;
+
       document.getElementById('match-modal').style.display = 'flex';
     }
 

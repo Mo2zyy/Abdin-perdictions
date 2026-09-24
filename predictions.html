@@ -121,9 +121,9 @@
       <div class="rules-card">
         <h4>📊 Prediction Scoring System (نظام نقاط التوقعات)</h4>
         <ul>
-          <li><strong>النتيجة الصحيحة بالظبط (Exact Score):</strong> تحصل على <strong>3 نقاط</strong>[cite: 6].</li>
-          <li><strong>توقع الفائز أو التعادل فقط (Correct Winner/Draw):</strong> تحصل على <strong>نقطة واحدة (1)</strong>[cite: 6].</li>
-          <li><strong>الخطأ (Incorrect):</strong> <strong>0 نقاط</strong>[cite: 6].</li>
+          <li><strong>النتيجة الصحيحة بالظبط (Exact Score):</strong> تحصل على <strong>3 نقاط</strong>.</li>
+          <li><strong>توقع الفائز أو التعادل فقط (Correct Winner/Draw):</strong> تحصل على <strong>نقطة واحدة (1)</strong>.</li>
+          <li><strong>الخطأ (Incorrect):</strong> <strong>0 نقاط</strong>.</li>
         </ul>
       </div>
 
@@ -727,6 +727,14 @@
               }
             }
           });
+          
+          // لو الماتشات لسه مبدأتش أو ملهاش نتائج مسجلة، هنحسب نقطة مؤقتة لكل توقع محفوظ (1 نقطة مبدئية لكل توقع لحد ما النتائج تنزل)
+          // أو لو حابب تظهر عدد التوقعات المحفوظة مؤقتاً كإجمالي:
+          if (totalPoints === 0 && data.length > 0) {
+            // مؤقتاً هنخليها تعرض عدد التوقعات المحفوظة لحد ما الماتشات تتلعب والنتائج الحقيقية تتسجل
+            // لو مش عايز الحركة دي وعايزها تظهر صفر لحد ماتبدأ الماتشات، شيل الشرط ده.
+            // حالياً هنخليها تعتمد على النتايج الحقيقية، ولكن لو حابب تعرض عدد التوقعات قول لي.
+          }
         }
 
         const totalScoreEl = document.getElementById('totalScoreVal');

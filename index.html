@@ -1,241 +1,122 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EA FC League - Predictions</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <style>
-    :root {
-      --bg-dark: #0a0e14;
-      --card-bg: #121824;
-      --accent-green: #00ff87;
-      --text-white: #f8fafc;
-      --border-color: #1e293b;
-      --danger-red: #ef4444;
-    }
+<script>
+  const SUPABASE_URL = 'https://ffdltukfzqxqrcpvrxxe.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZGx0dWtmenF4cXJjcHZyeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDc5NDQsImV4cCI6MjEwNTgyMzk0NH0.utVnf2aOG9yxRZoYlAoziDH_LY3Bvd3KkkmcwdY-IoY';
+  
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-white); margin: 0; padding: 20px; }
-    .container { max-width: 800px; margin: 0 auto; }
-    
-    h1 { text-align: center; color: var(--text-white); font-weight: 900; letter-spacing: 1px; font-size: 2.2rem; margin-bottom: 10px; }
-    h1 span { color: var(--accent-green); }
-    
-    /* Navigation Bar */
-    .nav { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-    .nav a { color: var(--text-white); text-decoration: none; padding: 10px 18px; background: var(--card-bg); border-radius: 6px; font-weight: bold; border: 1px solid var(--border-color); transition: all 0.2s; font-size: 14px; }
-    .nav a.active { background: var(--accent-green); color: #000; border-color: var(--accent-green); }
-    .nav a:hover:not(.active) { border-color: var(--accent-green); }
+  // Deadlines لكل يوم
+  const DEADLINES = {
+    1: new Date('2026-09-25T17:00:00+02:00'), // Day 1: Friday 25/09/2026 at 5:00 PM
+    2: new Date('2026-09-26T17:00:00+02:00')  // Day 2: Saturday 26/09/2026 at 5:00 PM
+  };
 
-    /* User Header / Login Box */
-    .user-banner { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-    .user-info { font-size: 1.1rem; font-weight: bold; }
-    .user-info span { color: var(--accent-green); }
-    .btn-secondary { background: transparent; color: #94a3b8; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
-    .btn-secondary:hover { color: var(--text-white); border-color: var(--text-white); }
+  const TEAM_LOGOS = {
+    'Ahd': './ahd.jpeg',
+    'Angle': './angle.jpeg',
+    'Desoky': './desoky.jpeg',
+    'Eslam': './eslam.jpeg',
+    'Kamal': './kamal.jpeg',
+    'Loay': './loay.jpeg',
+    'Seif': './seif.jpeg'
+  };
 
-    /* Login Form */
-    .login-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; text-align: center; max-width: 400px; margin: 40px auto; }
-    .login-box h3 { margin-top: 0; color: var(--accent-green); margin-bottom: 15px; }
-    .login-box input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); background: #06090e; color: #fff; font-size: 16px; margin-bottom: 15px; outline: none; }
-    .login-box input:focus { border-color: var(--accent-green); }
-    .btn-primary { background: var(--accent-green); color: #000; border: none; padding: 12px 24px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 16px; width: 100%; transition: opacity 0.2s; }
-    .btn-primary:hover { opacity: 0.9; }
+  let currentUser = localStorage.getItem('eafc_user') || '';
+  let allMatches = [];
+  let userPredictions = {};
 
-    /* Day Header & Deadline Info */
-    .day-section { margin-top: 30px; background: #0f1522; padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-green); margin-bottom: 15px; }
-    .day-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-    .day-title { font-size: 1.3rem; font-weight: bold; color: var(--accent-green); margin: 0; }
-    .deadline-badge { font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: bold; }
-    .deadline-active { background: rgba(0, 255, 135, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
-    .deadline-closed { background: rgba(239, 68, 68, 0.15); color: var(--danger-red); border: 1px solid var(--danger-red); }
-
-    /* Prediction Cards */
-    .match-card { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 14px 18px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px; }
-    .team-cell { display: flex; align-items: center; gap: 10px; font-weight: bold; flex: 1; }
-    .team-cell.away { justify-content: flex-end; }
-    .team-logo { width: 32px; height: 32px; object-fit: contain; border-radius: 50%; border: 1px solid var(--accent-green); background: #000; }
-    
-    .pred-inputs { display: flex; align-items: center; gap: 8px; }
-    .pred-input { width: 45px; height: 40px; text-align: center; background: #06090e; border: 1px solid var(--border-color); color: var(--accent-green); border-radius: 6px; font-size: 18px; font-weight: bold; outline: none; }
-    .pred-input:focus { border-color: var(--accent-green); }
-    .pred-input:disabled { opacity: 0.5; cursor: not-allowed; background: #1a2233; color: #888; }
-    
-    .rules-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px 20px; margin-bottom: 20px; font-size: 14px; }
-    .rules-card h4 { color: var(--accent-green); margin: 0 0 10px 0; }
-    .rules-card ul { margin: 0; padding-left: 20px; color: #cbd5e1; }
-
-    .action-bar { display: flex; gap: 10px; margin-top: 25px; margin-bottom: 40px; }
-    .btn-share { background: #3b82f6; color: white; border: none; padding: 14px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; flex: 1; font-size: 16px; transition: background 0.2s; }
-    .btn-share:hover { background: #2563eb; }
-
-    #toast { visibility: hidden; min-width: 250px; background-color: var(--accent-green); color: #000; font-weight: bold; text-align: center; border-radius: 6px; padding: 12px; position: fixed; z-index: 1000; bottom: 30px; left: 50%; transform: translateX(-50%); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-    #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
-    @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
-    @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
-  </style>
-</head>
-<body>
-
-  <div class="container">
-    <h1>EA SPORTS <span>FC LEAGUE</span></h1>
-    
-    <div class="nav">
-      <a href="index.html" class="active">Predictions</a>
-      <a href="standings.html">Standings</a>
-      <a href="matches.html">Matches</a>
-    </div>
-
-    <!-- Login Container -->
-    <div id="login-container" class="login-box">
-      <h3>Enter Your Name</h3>
-      <p style="color:#94a3b8; font-size:14px; margin-bottom:20px;">Type your name to start predicting matches</p>
-      <input type="text" id="username-input" placeholder="e.g. Desoky, Ahd, Seif..." autofocus>
-      <button class="btn-primary" onclick="loginUser()">Continue</button>
-    </div>
-
-    <!-- Main Content Container -->
-    <div id="app-container" style="display:none;">
-      
-      <div class="user-banner">
-        <div class="user-info">Predicting as: <span id="current-username">...</span></div>
-        <button class="btn-secondary" onclick="logoutUser()">Change Name</button>
-      </div>
-
-      <!-- Points System Rules -->
-      <div class="rules-card">
-        <h4>🎯 Points Rules</h4>
-        <ul>
-          <li><strong>3 Points:</strong> Exact Score prediction (e.g. Predicted 2-1 and ended 2-1).</li>
-          <li><strong>1 Point:</strong> Correct Winner or Draw prediction (e.g. Predicted 3-0 and ended 1-0).</li>
-          <li><strong>0 Points:</strong> Incorrect outcome.</li>
-        </ul>
-      </div>
-
-      <div id="predictions-form">
-        <p style="text-align:center;">Loading Matches...</p>
-      </div>
-
-      <div class="action-bar">
-        <button class="btn-primary" style="flex:2;" onclick="savePredictions()">Save Predictions</button>
-        <button class="btn-share" onclick="sharePredictions()">📤 Share Predictions</button>
-      </div>
-
-    </div>
-  </div>
-
-  <div id="toast">Saved Successfully!</div>
-
-  <script>
-    const SUPABASE_URL = 'https://ffdltukfzqxqrcpvrxxe.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZGx0dWtmenF4cXJjcHZyeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDc5NDQsImV4cCI6MjEwNTgyMzk0NH0.utVnf2aOG9yxRZoYlAoziDH_LY3Bvd3KkkmcwdY-IoY';
-    
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // Deadlines (ISO Formats)
-    const DEADLINES = {
-      1: new Date('2026-09-25T17:00:00+02:00'), // Friday 25/09/2026 at 5:00 PM
-      2: new Date('2026-09-26T17:00:00+02:00')  // Saturday 26/09/2026 at 5:00 PM
-    };
-
-    const TEAM_LOGOS = {
-      'Ahd': './ahd.jpeg',
-      'Angle': './angle.jpeg',
-      'Desoky': './desoky.jpeg',
-      'Eslam': './eslam.jpeg',
-      'Kamal': './kamal.jpeg',
-      'Loay': './loay.jpeg',
-      'Seif': './seif.jpeg'
-    };
-
-    let currentUser = localStorage.getItem('eafc_user') || '';
-    let allMatches = [];
-    let userPredictions = {};
-
-    window.onload = () => {
-      if (currentUser) {
-        showApp();
-      } else {
-        document.getElementById('login-container').style.display = 'block';
-      }
-    };
-
-    function loginUser() {
-      const input = document.getElementById('username-input').value.trim();
-      if (!input) {
-        alert('Please enter your name');
-        return;
-      }
-      currentUser = input;
-      localStorage.setItem('eafc_user', currentUser);
+  window.onload = () => {
+    if (currentUser) {
       showApp();
-    }
-
-    function logoutUser() {
-      localStorage.removeItem('eafc_user');
-      currentUser = '';
-      document.getElementById('app-container').style.display = 'none';
+    } else {
       document.getElementById('login-container').style.display = 'block';
     }
+  };
 
-    async function showApp() {
-      document.getElementById('login-container').style.display = 'none';
-      document.getElementById('app-container').style.display = 'block';
-      document.getElementById('current-username').innerText = currentUser;
-      await loadData();
+  function loginUser() {
+    const input = document.getElementById('username-input').value.trim();
+    if (!input) {
+      alert('Please enter your name');
+      return;
     }
+    currentUser = input;
+    localStorage.setItem('eafc_user', currentUser);
+    showApp();
+  }
 
-    async function loadData() {
-      try {
-        // Fetch Matches
-        const { data: matches } = await db.from('matches').select('*').order('id', { ascending: true });
-        allMatches = matches || [];
+  function logoutUser() {
+    localStorage.removeItem('eafc_user');
+    currentUser = '';
+    document.getElementById('app-container').style.display = 'none';
+    document.getElementById('login-container').style.display = 'block';
+  }
 
-        // Fetch User Predictions
-        const { data: preds } = await db.from('predictions').select('*').eq('username', currentUser);
-        userPredictions = {};
-        if (preds) {
-          preds.forEach(p => {
-            userPredictions[p.match_id] = p;
-          });
-        }
+  async function showApp() {
+    document.getElementById('login-container').style.display = 'none';
+    document.getElementById('app-container').style.display = 'block';
+    document.getElementById('current-username').innerText = currentUser;
+    await loadData();
+  }
 
-        renderMatches();
-      } catch (err) {
-        console.error(err);
+  async function loadData() {
+    try {
+      const { data: matches } = await db.from('matches').select('*').order('id', { ascending: true });
+      allMatches = matches || [];
+
+      const { data: preds } = await db.from('predictions').select('*').eq('username', currentUser);
+      userPredictions = {};
+      if (preds) {
+        preds.forEach(p => {
+          userPredictions[p.match_id] = p;
+        });
       }
+
+      renderMatches();
+    } catch (err) {
+      console.error(err);
     }
+  }
 
-    function renderMatches() {
-      const now = new Date();
-      let html = '';
+  // معرفة اليوم من رقم الجولة
+  function getDayFromRound(roundNo) {
+    return roundNo <= 7 ? 1 : 2;
+  }
 
-      // Group Matches by Round / Day
-      const rounds = {};
-      allMatches.forEach(m => {
-        const r = m.round_no || 1;
-        if (!rounds[r]) rounds[r] = [];
-        rounds[r].push(m);
-      });
+  function renderMatches() {
+    const now = new Date();
+    let html = '';
 
-      Object.keys(rounds).forEach(r => {
-        const deadline = DEADLINES[r] || DEADLINES[1];
-        const isClosed = now > deadline;
-        const deadlineStr = deadline.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
+    // تجميع المباريات حسب اليوم (Day 1 / Day 2) ثم حسب الجولات (Rounds)
+    const days = { 1: {}, 2: {} };
 
-        html += `
-          <div class="day-section">
-            <div class="day-header">
-              <h3 class="day-title">Day ${r} (Round ${r})</h3>
-              <span class="deadline-badge ${isClosed ? 'deadline-closed' : 'deadline-active'}">
-                ${isClosed ? '🔒 Predictions Closed' : `⏰ Deadline: ${deadlineStr}`}
-              </span>
-            </div>
+    allMatches.forEach(m => {
+      const r = m.round_no || 1;
+      const day = getDayFromRound(r);
+      
+      if (!days[day][r]) days[day][r] = [];
+      days[day][r].push(m);
+    });
+
+    [1, 2].forEach(dayNumber => {
+      const deadline = DEADLINES[dayNumber];
+      const isClosed = now > deadline;
+      const deadlineStr = deadline.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true });
+
+      html += `
+        <div class="day-section" style="border-left-width: 6px; margin-top: 40px;">
+          <div class="day-header">
+            <h2 class="day-title" style="font-size: 1.6rem;">📅 DAY ${dayNumber} ${dayNumber === 1 ? '(FIRST LEG)' : '(RETURN LEG)'}</h2>
+            <span class="deadline-badge ${isClosed ? 'deadline-closed' : 'deadline-active'}">
+              ${isClosed ? '🔒 Day Closed' : `⏰ Deadline: ${deadlineStr}`}
+            </span>
           </div>
-        `;
+        </div>
+      `;
 
-        rounds[r].forEach(m => {
+      const roundsInDay = days[dayNumber];
+      Object.keys(roundsInDay).forEach(r => {
+        html += `<h3 style="color:var(--accent-green); margin:20px 0 10px 0; border-bottom:1px solid var(--border-color); padding-bottom:5px;">Round ${r}</h3>`;
+
+        roundsInDay[r].forEach(m => {
           const p = userPredictions[m.id] || {};
           const homeScore = p.home_pred !== undefined && p.home_pred !== null ? p.home_pred : '';
           const awayScore = p.away_pred !== undefined && p.away_pred !== null ? p.away_pred : '';
@@ -260,62 +141,69 @@
           `;
         });
       });
+    });
 
-      document.getElementById('predictions-form').innerHTML = html;
+    document.getElementById('predictions-form').innerHTML = html;
+  }
+
+  async function savePredictions() {
+    const now = new Date();
+    const updates = [];
+
+    allMatches.forEach(m => {
+      const r = m.round_no || 1;
+      const day = getDayFromRound(r);
+      const deadline = DEADLINES[day];
+
+      // يتخطى الحفظ إذا انتهى الـ Deadline لهذا اليوم
+      if (now > deadline) return;
+
+      const hInput = document.getElementById(`pred-home-${m.id}`);
+      const aInput = document.getElementById(`pred-away-${m.id}`);
+
+      if (hInput && aInput && hInput.value !== '' && aInput.value !== '') {
+        updates.push({
+          username: currentUser,
+          match_id: m.id,
+          home_pred: parseInt(hInput.value),
+          away_pred: parseInt(aInput.value)
+        });
+      }
+    });
+
+    if (updates.length === 0) {
+      showToast('No active predictions to save!');
+      return;
     }
 
-    async function savePredictions() {
-      const now = new Date();
-      const updates = [];
+    const { error } = await db.from('predictions').upsert(updates, { onConflict: 'username,match_id' });
 
-      allMatches.forEach(m => {
-        const r = m.round_no || 1;
-        const deadline = DEADLINES[r] || DEADLINES[1];
-
-        // Skip if closed
-        if (now > deadline) return;
-
-        const hInput = document.getElementById(`pred-home-${m.id}`);
-        const aInput = document.getElementById(`pred-away-${m.id}`);
-
-        if (hInput && aInput && hInput.value !== '' && aInput.value !== '') {
-          updates.push({
-            username: currentUser,
-            match_id: m.id,
-            home_pred: parseInt(hInput.value),
-            away_pred: parseInt(aInput.value)
-          });
-        }
-      });
-
-      if (updates.length === 0) {
-        showToast('No active or new predictions to save!');
-        return;
-      }
-
-      const { error } = await db.from('predictions').upsert(updates, { onConflict: 'username,match_id' });
-
-      if (error) {
-        alert('Error saving: ' + error.message);
-      } else {
-        showToast('Predictions Saved Successfully!');
-        await loadData();
-      }
+    if (error) {
+      alert('Error saving: ' + error.message);
+    } else {
+      showToast('Predictions Saved Successfully!');
+      await loadData();
     }
+  }
 
-    function sharePredictions() {
-      let shareText = `⚽ *EA FC LEAGUE PREDICTIONS*\n👤 Player: *${currentUser}*\n━━━━━━━━━━━━━━━━━━\n`;
+  function sharePredictions() {
+    let shareText = `⚽ *ULTIMATE TEAM LEAGUE PREDICTIONS*\n👤 Player: *${currentUser}*\n━━━━━━━━━━━━━━━━━━\n`;
 
-      const rounds = {};
-      allMatches.forEach(m => {
-        const r = m.round_no || 1;
-        if (!rounds[r]) rounds[r] = [];
-        rounds[r].push(m);
-      });
+    const days = { 1: {}, 2: {} };
+    allMatches.forEach(m => {
+      const r = m.round_no || 1;
+      const day = getDayFromRound(r);
+      if (!days[day][r]) days[day][r] = [];
+      days[day][r].push(m);
+    });
 
-      Object.keys(rounds).forEach(r => {
-        shareText += `\n📅 *DAY ${r}*\n`;
-        rounds[r].forEach(m => {
+    [1, 2].forEach(dayNumber => {
+      shareText += `\n📅 *DAY ${dayNumber} ${dayNumber === 1 ? '(FIRST LEG)' : '(RETURN LEG)'}*\n`;
+      const roundsInDay = days[dayNumber];
+      
+      Object.keys(roundsInDay).forEach(r => {
+        shareText += `*Round ${r}:*\n`;
+        roundsInDay[r].forEach(m => {
           const hInput = document.getElementById(`pred-home-${m.id}`);
           const aInput = document.getElementById(`pred-away-${m.id}`);
           const hVal = hInput ? hInput.value : '-';
@@ -324,22 +212,21 @@
           shareText += `• ${m.home_team} [ ${hVal !== '' ? hVal : '?'} - ${aVal !== '' ? aVal : '?'} ] ${m.away_team}\n`;
         });
       });
+    });
 
-      shareText += `\n🔥 Good Luck Everyone!`;
+    shareText += `\n🔥 Good Luck Everyone!`;
 
-      navigator.clipboard.writeText(shareText).then(() => {
-        showToast('Copied to Clipboard! Ready to share.');
-      }).catch(err => {
-        console.error('Copy failed', err);
-      });
-    }
+    navigator.clipboard.writeText(shareText).then(() => {
+      showToast('Copied to Clipboard! Ready to share.');
+    }).catch(err => {
+      console.error('Copy failed', err);
+    });
+  }
 
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.innerText = msg;
-      t.className = 'show';
-      setTimeout(() => { t.className = t.className.replace('show', ''); }, 3000);
-    }
-  </script>
-</body>
-</html>
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerText = msg;
+    t.className = 'show';
+    setTimeout(() => { t.className = t.className.replace('show', ''); }, 3000);
+  }
+</script>

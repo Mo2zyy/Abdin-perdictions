@@ -9,7 +9,13 @@
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
     .container { max-width: 800px; margin: 0 auto; }
-    h1 { text-align: center; color: #38bdf8; margin-bottom: 30px; }
+    h1 { text-align: center; color: #38bdf8; margin-bottom: 20px; }
+    
+    /* تنسيق أزرار التنقل الجديدة */
+    .nav { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
+    .nav a { color: #fff; text-decoration: none; padding: 10px 20px; background: #1e293b; border-radius: 8px; font-weight: bold; border: 1px solid #334155; }
+    .nav a.active { background: #0284c7; border-color: #38bdf8; }
+
     .card { background: #1e293b; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
     .hidden { display: none; }
     input[type="text"], input[type="number"] { padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #fff; width: 100%; }
@@ -23,6 +29,12 @@
 <body>
   <div class="container">
     <h1>🏆 Ultimate Team League</h1>
+
+    <!-- أزرار التنقل بين الصفحات -->
+    <div class="nav">
+      <a href="index.html" class="active">صفحة التوقعات</a>
+      <a href="standings.html">جدول الترتيب والمباريات</a>
+    </div>
 
     <!-- شاشة تسجيل الدخول -->
     <div id="login-section" class="card">

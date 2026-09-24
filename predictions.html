@@ -69,7 +69,7 @@
     .btn-action:hover { transform: scale(1.05); }
     .btn-share { background: #3b82f6; color: #fff; box-shadow: 0 0 15px rgba(59,130,246,0.3); }
 
-    /* Background Slideshow (.jpg) */
+    /* Background Slideshow */
     .bg-slideshow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; }
     .bg-slideshow div { position: absolute; width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0; animation: slideAnimation 28s infinite; filter: brightness(0.35); }
     .bg-slideshow div:nth-child(1) { background-image: url('./ahd1.png'); animation-delay: 0s; }
@@ -104,7 +104,7 @@
     <div id="loginSection" class="login-box">
       <h3 style="color:var(--accent-green); margin-top:0;">ENTER YOUR NAME</h3>
       <p style="font-size:13px; color:#94a3b8;">Type your name to save and view your match predictions.</p>
-      <input type="text" id="usernameInput" placeholder="e.g. Desoky, Ahd, Seif..." />
+      <input type="text" id="usernameInput" placeholder="e.g. Desoky, Ahd, Seif, or any friend..." />
       <button class="login-btn" onclick="loginUser()">Enter Predictions</button>
     </div>
 
@@ -121,8 +121,8 @@
       <div class="rules-card">
         <h4>📊 Prediction Scoring System (نظام نقاط التوقعات)</h4>
         <ul>
-          <li><strong>النتيجة الصحيحة بالظبط (Exact Score):</strong> تحصل على <strong>3 نقاط</strong> إذا توقعت فوز الفريقين وأهدافهم بدقة (مثلاً توقعت 2-1 وانتهت 2-1).</li>
-          <li><strong>توقع الفائز أو التعادل فقط (Correct Winner/Draw):</strong> تحصل على <strong>نقطة واحدة (1)</strong> إذا توقعت الفائز صح أو تعادل الفريقين بس الأهداف غلط.</li>
+          <li><strong>النتيجة الصحيحة بالظبط (Exact Score):</strong> تحصل على <strong>3 نقاط</strong> إذا توقعت فوز الفريقين وأهدافهم بدقة.</li>
+          <li><strong>توقع الفائز أو التعادل فقط (Correct Winner/Draw):</strong> تحصل على <strong>نقطة واحدة (1)</strong> إذا توقعت الفائز صح بس الأهداف غلط.</li>
           <li><strong>الخطأ (Incorrect):</strong> <strong>0 نقاط</strong> إذا خالفت النتيجة توقعك تماماً.</li>
         </ul>
       </div>
@@ -566,33 +566,57 @@
     async function savePredictions() {
       if (!db || !currentUser) return;
 
-      const predictionsData = {};
-      for (let r = 1; r <= 14; r++) {
-        for (let m = 1; m <= 3; m++) {
-          const hVal = document.getElementById(`p_r${r}_m${m}_h`).value;
-          const aVal = document.getElementById(`p_r${r}_m${m}_a`).value;
-          if (hVal !== '' && aVal !== '') {
-            predictionsData[`r${r}_m${m}`] = `${hVal}-${aVal}`;
+      try {
+        // 1. البحث عن المستخدم في جدول players
+        let { data: userData, error: userError } = await db
+          .from('players')
+          .select('id')
+          .eq('name', currentUser)
+          .maybeSingle();
+
+        let userId;
+
+        // لو المستخدم مش موجود، نقوم بإضافته تلقائياً لكي يتمكن أي شخص من التوقع
+        if (!userData) {
+          let { data: newUserData, error: insertError } = await db
+            .from('players')
+            .insert([{ name: currentUser }])
+            .select('id')
+            .single();
+
+          if (insertError) {
+            console.error(insertError);
+            alert('فشل تسجيل اسم المستخدم الجديد في قاعدة البيانات.');
+            return;
+          }
+          userId = newUserData.id;
+        } else {
+          userId = userData.id;
+        }
+
+        // 2. حفظ التوقعات في جدول predictions لكل ماتش على حدة
+        for (let r = 1; r <= 14; r++) {
+          for (let m = 1; m <= 3; m++) {
+            const hVal = document.getElementById(`p_r${r}_m${m}_h`).value;
+            const aVal = document.getElementById(`p_r${r}_m${m}_a`).value;
+
+            if (hVal !== '' && aVal !== '') {
+              const matchId = ((r - 1) * 3) + m; 
+
+              await db.from('predictions').upsert({
+                user_id: userId,
+                match_id: matchId,
+                predicted_home_score: parseInt(hVal),
+                predicted_away_score: parseInt(aVal)
+              }, { onConflict: 'user_id,match_id' });
+            }
           }
         }
-      }
 
-      try {
-        const { error } = await db.from('predictions').upsert({
-          username: currentUser,
-          predictions_data: predictionsData,
-          updated_path: new Date()
-        }, { onConflict: 'username' });
-
-        if (error) {
-          console.error(error);
-          alert('Error saving predictions. Make sure table "predictions" exists in Supabase.');
-        } else {
-          alert('Predictions saved successfully!');
-        }
+        alert('تم حفظ التوقعات بنجاح يا معلم! 🚀');
       } catch (err) {
         console.error(err);
-        alert('Failed to save predictions.');
+        alert('حصل خطأ أثناء الحفظ، افتح الـ Console عشان تشوف التفاصيل.');
       }
     }
 
@@ -631,25 +655,36 @@
     async function loadUserPredictions() {
       if (!db || !currentUser) return;
       try {
-        const { data, error } = await db.from('predictions').select('predictions_data').eq('username', currentUser).single();
-        if (data && data.predictions_data) {
-          const pred = data.predictions_data;
-          for (let r = 1; r <= 14; r++) {
-            for (let m = 1; m <= 3; m++) {
-              const key = `r${r}_m${m}`;
-              if (pred[key]) {
-                const parts = pred[key].split('-');
-                const hInput = document.getElementById(`p_r${r}_m${m}_h`);
-                const aInput = document.getElementById(`p_r${r}_m${m}_a`);
-                if (hInput && aInput) {
-                  hInput.value = parts[0];
-                  aInput.value = parts[1];
-                }
-              }
+        let { data: userData } = await db
+          .from('players')
+          .select('id')
+          .eq('name', currentUser)
+          .maybeSingle();
+
+        if (!userData) return;
+
+        const { data, error } = await db
+          .from('predictions')
+          .select('match_id, predicted_home_score, predicted_away_score')
+          .eq('user_id', userData.id);
+
+        if (data) {
+          data.forEach(p => {
+            // عكس معادلة حساب match_id لمعرفة الجولة ورقم الماتش
+            const r = Math.floor((p.match_id - 1) / 3) + 1;
+            const m = ((p.match_id - 1) % 3) + 1;
+
+            const hInput = document.getElementById(`p_r${r}_m${m}_h`);
+            const aInput = document.getElementById(`p_r${r}_m${m}_a`);
+            if (hInput && aInput) {
+              hInput.value = p.predicted_home_score;
+              aInput.value = p.predicted_away_score;
             }
-          }
+          });
         }
-      } catch (err) {}
+      } catch (err) {
+        console.log('Error loading predictions', err);
+      }
     }
   </script>
 </body>

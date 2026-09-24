@@ -665,7 +665,7 @@
         if (error) throw error;
         alert('Predictions saved successfully! 🚀');
         loadUserPredictions();
-      } خانة catch (err) {
+      } catch (err) {
         console.error('Error saving predictions:', err);
         alert('Failed to save predictions. Check console for details.');
       }
@@ -728,10 +728,8 @@
             }
           });
           
-          // طالما لسه النتائج الحقيقية مبداتش أو فارغة، هنخلي التوتال اسكور يعرض عدد التوقعات المحفوظة (أو يقرأ النقاط بناءً على حفظك)
-          // عشان ميفضلش 0 ويظهرلك رقم التوقعات اللي عملتها كإجمالي مؤقت
           if (totalPoints === 0 && data.length > 0) {
-            totalPoints = data.length; // عرض عدد الماتشات المتوقعة مؤقتاً لحد ما الماتشات تبدأ وتتحسب بالنقاط الفعلية
+            totalPoints = data.length;
           }
         }
 

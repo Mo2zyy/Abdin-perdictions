@@ -3,22 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ترتيب البطولة والمباريات - Ultimate Team League</title>
+  <title>الترتيب والمباريات - Ultimate Team League</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: system-ui, sans-serif; background: #0b1329; color: #fff; margin: 0; padding: 20px; }
-    h1, h2 { text-align: center; color: #38bdf8; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0b1329; color: #fff; margin: 0; padding: 15px; }
+    h1, h2 { text-align: center; color: #38bdf8; margin-bottom: 10px; }
     .container { max-width: 900px; margin: 0 auto; }
-    .nav { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
-    .nav a { color: #38bdf8; text-decoration: none; padding: 8px 16px; background: #1e293b; border-radius: 8px; }
-    table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 10px; overflow: hidden; margin-bottom: 30px; }
-    th, td { padding: 12px 10px; text-align: center; border-bottom: 1px solid #334155; }
-    th { background: #0284c7; color: #fff; }
+    .nav { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
+    .nav a { color: #fff; text-decoration: none; padding: 10px 20px; background: #1e293b; border-radius: 8px; font-weight: bold; border: 1px solid #334155; }
+    .nav a.active { background: #0284c7; border-color: #38bdf8; }
+    
+    /* Table Styling */
+    .table-responsive { overflow-x: auto; margin-bottom: 30px; }
+    table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; }
+    th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #334155; font-size: 15px; }
+    th { background: #0284c7; color: #fff; font-weight: bold; }
     .player-cell { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: bold; }
-    .team-logo { width: 25px; height: 25px; object-fit: contain; }
-    .matches-grid { background: #1e293b; padding: 15px; border-radius: 10px; }
-    .match-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #334155; }
-    .score-box { background: #0f172a; padding: 4px 10px; border-radius: 5px; font-weight: bold; color: #f59e0b; }
+    .team-logo { width: 32px; height: 32px; object-fit: contain; border-radius: 4px; }
+    
+    /* Matches Styling */
+    .matches-grid { display: flex; flex-direction: column; gap: 12px; }
+    .match-card { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 12px 15px; border-radius: 10px; border: 1px solid #334155; }
+    .score-box { background: #0f172a; padding: 6px 14px; border-radius: 8px; font-weight: bold; color: #38bdf8; border: 1px solid #475569; font-size: 16px; min-width: 60px; text-align: center; }
   </style>
 </head>
 <body>
@@ -28,31 +34,33 @@
     
     <div class="nav">
       <a href="index.html">صفحة التوقعات</a>
-      <a href="standings.html" style="background:#0284c7; color:#fff;">جدول الترتيب والمباريات</a>
+      <a href="standings.html" class="active">جدول الترتيب والمباريات</a>
     </div>
 
-    <h2>جدول الترتيب</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>اللاعب</th>
-          <th>لعب</th>
-          <th>فاز</th>
-          <th>تعادل</th>
-          <th>خسر</th>
-          <th>له</th>
-          <th>عليه</th>
-          <th>الفارق</th>
-          <th>النقاط</th>
-        </tr>
-      </thead>
-      <tbody id="standings-body">
-        <tr><td colspan="10">جاري حساب الترتيب...</td></tr>
-      </tbody>
-    </table>
+    <h2>📊 جدول الترتيب</h2>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>اللاعب</th>
+            <th>لعب</th>
+            <th>فاز</th>
+            <th>تعادل</th>
+            <th>خسر</th>
+            <th>له</th>
+            <th>عليه</th>
+            <th>الفارق</th>
+            <th>النقاط</th>
+          </tr>
+        </thead>
+        <tbody id="standings-body">
+          <tr><td colspan="10">جاري تحميل الترتيب...</td></tr>
+        </tbody>
+      </table>
+    </div>
 
-    <h2>جدول المباريات والنتائج</h2>
+    <h2>⚽ المباريات والنتائج</h2>
     <div id="matches-container" class="matches-grid">
       <p style="text-align:center;">جاري تحميل المباريات...</p>
     </div>
@@ -63,105 +71,119 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZGx0dWtmenF4cXJjcHZyeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDc5NDQsImV4cCI6MjEwNTgyMzk0NH0.utVnf2aOG9yxRZoYlAoziDH_LY3Bvd3KkkmcwdY-IoY';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-   const TEAM_LOGOS = {
-  'Ahd': './ahd.jpeg',
-  'Angle': './angle.jpeg',
-  'Desoky': './Desoky.jpeg',
-  'Eslam': './eslam.jpeg',
-  'Kamal': './kamal.jpeg',
-  'Loay': './Loay.jpeg',
-  'Seif': './Seif.jpeg'
-};
+    const TEAM_LOGOS = {
+      'Ahd': './ahd.jpeg',
+      'Angle': './angle.jpeg',
+      'Desoky': './desoky.jpeg',
+      'Eslam': './eslam.jpeg',
+      'Kamal': './kamal.jpeg',
+      'Loay': './loay.jpeg',
+      'Seif': './seif.jpeg'
+    };
 
     const PLAYERS = ['Ahd', 'Angle', 'Desoky', 'Eslam', 'Kamal', 'Loay', 'Seif'];
 
     async function loadData() {
-      const { data: matches } = await db.from('matches').select('*').order('id', { ascending: true });
+      try {
+        const { data: matches, error } = await db.from('matches').select('*').order('id', { ascending: true });
 
-      // حساب الترتيب
-      const stats = {};
-      PLAYERS.forEach(p => {
-        stats[p] = { name: p, P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, PTS: 0 };
-      });
+        if (error) throw error;
 
-      let matchesHtml = '';
-      let currentRound = 0;
+        const stats = {};
+        PLAYERS.forEach(p => {
+          stats[p] = { name: p, P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, PTS: 0 };
+        });
 
-      if (matches) {
-        matches.forEach(m => {
-          // حساب النتائج إذا كان للمباراة نتيجة مسجلة (home_score & away_score)
-          if (m.home_score !== null && m.away_score !== null) {
-            const h = m.home_team;
-            const a = m.away_team;
-            const hs = m.home_score;
-            const as = m.away_score;
+        let matchesHtml = '';
+        let currentRound = 0;
 
-            if (stats[h] && stats[a]) {
-              stats[h].P++; stats[a].P++;
-              stats[h].GF += hs; stats[h].GA += as;
-              stats[a].GF += as; stats[a].GA += hs;
+        if (matches && matches.length > 0) {
+          matches.forEach(m => {
+            // حساب الإحصائيات في حالة وجود نتيجة مسجلة للمباراة
+            if (m.home_score !== null && m.away_score !== null && m.home_score !== undefined && m.away_score !== undefined) {
+              const h = m.home_team;
+              const a = m.away_team;
+              const hs = parseInt(m.home_score);
+              const as = parseInt(m.away_score);
 
-              if (hs > as) {
-                stats[h].W++; stats[h].PTS += 3;
-                stats[a].L++;
-              } else if (as > hs) {
-                stats[a].W++; stats[a].PTS += 3;
-                stats[h].L++;
-              } else {
-                stats[h].D++; stats[h].PTS += 1;
-                stats[a].D++; stats[a].PTS += 1;
+              if (stats[h] && stats[a]) {
+                stats[h].P++; stats[a].P++;
+                stats[h].GF += hs; stats[h].GA += as;
+                stats[a].GF += as; stats[a].GA += hs;
+
+                if (hs > as) {
+                  stats[h].W++; stats[h].PTS += 3;
+                  stats[a].L++;
+                } else if (as > hs) {
+                  stats[a].W++; stats[a].PTS += 3;
+                  stats[h].L++;
+                } else {
+                  stats[h].D++; stats[h].PTS += 1;
+                  stats[a].D++; stats[a].PTS += 1;
+                }
               }
             }
-          }
 
-          // عرض المباريات
-          if (m.round_no !== currentRound) {
-            currentRound = m.round_no;
-            matchesHtml += `<h3 style="color:#38bdf8; margin-top:15px;">الجولة ${currentRound}</h3>`;
-          }
+            // تجميع وتنسيق قائمة المباريات والجولات
+            if (m.round_no !== currentRound) {
+              currentRound = m.round_no;
+              matchesHtml += `<h3 style="color:#38bdf8; margin-top:25px; border-bottom:1px solid #334155; padding-bottom:5px; text-align:center;">الجولة ${currentRound}</h3>`;
+            }
 
-          const hLogo = TEAM_LOGOS[m.home_team] ? `<img src="${TEAM_LOGOS[m.home_team]}" class="team-logo">` : '';
-          const aLogo = TEAM_LOGOS[m.away_team] ? `<img src="${TEAM_LOGOS[m.away_team]}" class="team-logo">` : '';
-          const scoreText = (m.home_score !== null && m.away_score !== null) ? `${m.home_score} - ${m.away_score}` : 'لم تلعب بعد';
+            const hLogo = TEAM_LOGOS[m.home_team] ? `<img src="${TEAM_LOGOS[m.home_team]}" class="team-logo">` : '';
+            const aLogo = TEAM_LOGOS[m.away_team] ? `<img src="${TEAM_LOGOS[m.away_team]}" class="team-logo">` : '';
+            const scoreDisplay = (m.home_score !== null && m.away_score !== null && m.home_score !== undefined) 
+              ? `${m.home_score} - ${m.away_score}` 
+              : 'لم تلعب';
 
-          matchesHtml += `
-            <div class="match-row">
-              <div class="player-cell">${hLogo} <span>${m.home_team}</span></div>
-              <div class="score-box">${scoreText}</div>
-              <div class="player-cell"><span>${m.away_team}</span> ${aLogo}</div>
-            </div>
+            matchesHtml += `
+              <div class="match-card">
+                <div class="player-cell" style="flex:1; justify-content:flex-start;">
+                  ${hLogo} <span>${m.home_team}</span>
+                </div>
+                <div class="score-box">${scoreDisplay}</div>
+                <div class="player-cell" style="flex:1; justify-content:flex-end;">
+                  <span>${m.away_team}</span> ${aLogo}
+                </div>
+              </div>
+            `;
+          });
+        } else {
+          matchesHtml = '<p style="text-align:center; color:red;">لا توجد مباريات للعرض!</p>';
+        }
+
+        // ترتيب الأندية حسب النقاط ثم فارق الأهداف ثم الأهداف المسجلة
+        const sorted = Object.values(stats).map(s => {
+          s.GD = s.GF - s.GA;
+          return s;
+        }).sort((a, b) => b.PTS - a.PTS || b.GD - a.GD || b.GF - a.GF);
+
+        let tableHtml = '';
+        sorted.forEach((s, index) => {
+          const logo = TEAM_LOGOS[s.name] ? `<img src="${TEAM_LOGOS[s.name]}" class="team-logo">` : '';
+          tableHtml += `
+            <tr>
+              <td><b>${index + 1}</b></td>
+              <td><div class="player-cell">${logo} <span>${s.name}</span></div></td>
+              <td>${s.P}</td>
+              <td>${s.W}</td>
+              <td>${s.D}</td>
+              <td>${s.L}</td>
+              <td>${s.GF}</td>
+              <td>${s.GA}</td>
+              <td>${s.GD > 0 ? '+' + s.GD : s.GD}</td>
+              <td><b style="color:#38bdf8;">${s.PTS}</b></td>
+            </tr>
           `;
         });
+
+        document.getElementById('standings-body').innerHTML = tableHtml;
+        document.getElementById('matches-container').innerHTML = matchesHtml;
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById('standings-body').innerHTML = '<tr><td colspan="10" style="color:red;">خطأ أثناء تحميل البيانات!</td></tr>';
       }
-
-      // حساب الفارق وترتيب اللاعبين
-      const sorted = Object.values(stats).map(s => {
-        s.GD = s.GF - s.GA;
-        return s;
-      }).sort((a, b) => b.PTS - a.PTS || b.GD - a.GD || b.GF - a.GF);
-
-      // عرض الجدول
-      let tableHtml = '';
-      sorted.forEach((s, index) => {
-        const logo = TEAM_LOGOS[s.name] ? `<img src="${TEAM_LOGOS[s.name]}" class="team-logo">` : '';
-        tableHtml += `
-          <tr>
-            <td>${index + 1}</td>
-            <td><div class="player-cell">${logo} <span>${s.name}</span></div></td>
-            <td>${s.P}</td>
-            <td>${s.W}</td>
-            <td>${s.D}</td>
-            <td>${s.L}</td>
-            <td>${s.GF}</td>
-            <td>${s.GA}</td>
-            <td>${s.GD}</td>
-            <td><strong>${s.PTS}</strong></td>
-          </tr>
-        `;
-      });
-
-      document.getElementById('standings-body').innerHTML = tableHtml;
-      document.getElementById('matches-container').innerHTML = matchesHtml;
     }
 
     loadData();

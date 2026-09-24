@@ -28,23 +28,36 @@
     .nav a:hover:not(.active) { border-color: var(--accent-green); }
 
     .matches-list { display: flex; flex-direction: column; gap: 12px; }
-    .match-item { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px); }
+    .match-item { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px); cursor: pointer; transition: border-color 0.2s, transform 0.2s; }
+    .match-item:hover { border-color: var(--accent-green); transform: translateY(-2px); }
+    
     .team-box { display: flex; align-items: center; gap: 10px; width: 40%; }
     .team-box.away { justify-content: flex-end; }
     .team-logo { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--accent-green); background: #000; object-fit: contain; }
     .score-badge { background: #06090e; border: 1px solid var(--accent-green); color: var(--accent-green); padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 16px; }
 
+    /* Modal Styles for Match Images */
+    .video-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 9999; }
+    .video-content { position: relative; background: #121824; border: 2px solid var(--accent-green); border-radius: 12px; padding: 20px; width: 90%; max-width: 650px; box-shadow: 0 0 30px rgba(0,255,135,0.3); text-align: center; }
+    .close-video-btn { position: absolute; top: 10px; right: 10px; background: #ef4444; color: #fff; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; z-index: 10000; display: flex; justify-content: center; align-items: center; transition: transform 0.2s; }
+    .close-video-btn:hover { transform: scale(1.1); background: #dc2626; }
+    
+    .match-images-container { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 15px; }
+    .player-card-preview { flex: 1; min-width: 240px; }
+    .player-card-preview img { width: 100%; border-radius: 8px; border: 1px solid var(--accent-green); background: #000; object-fit: cover; max-height: 350px; }
+    .player-card-preview p { color: var(--accent-green); font-weight: bold; margin-bottom: 8px; font-size: 16px; }
+
     /* Background Slideshow (.jpg) */
     .bg-slideshow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; }
     .bg-slideshow div { position: absolute; width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0; animation: slideAnimation 28s infinite; filter: brightness(0.35); }
 
-    .bg-slideshow div:nth-child(1) { background-image: url('./ahd1.png'); animation-delay: 0s; }
-    .bg-slideshow div:nth-child(2) { background-image: url('./angle2.png'); animation-delay: 4s; }
-    .bg-slideshow div:nth-child(3) { background-image: url('./desoky3.png'); animation-delay: 8s; }
-    .bg-slideshow div:nth-child(4) { background-image: url('./eslam4.png'); animation-delay: 12s; }
-    .bg-slideshow div:nth-child(5) { background-image: url('./kamal5.png'); animation-delay: 16s; }
-    .bg-slideshow div:nth-child(6) { background-image: url('./loay6.png'); animation-delay: 20s; }
-    .bg-slideshow div:nth-child(7) { background-image: url('./seif7.png'); animation-delay: 24s; }
+    .bg-slideshow div:nth-child(1) { background-image: url('./ahd1.jpg'); animation-delay: 0s; }
+    .bg-slideshow div:nth-child(2) { background-image: url('./angle2.jpg'); animation-delay: 4s; }
+    .bg-slideshow div:nth-child(3) { background-image: url('./desoky3.jpg'); animation-delay: 8s; }
+    .bg-slideshow div:nth-child(4) { background-image: url('./eslam4.jpg'); animation-delay: 12s; }
+    .bg-slideshow div:nth-child(5) { background-image: url('./kamal5.jpg'); animation-delay: 16s; }
+    .bg-slideshow div:nth-child(6) { background-image: url('./loay6.jpg'); animation-delay: 20s; }
+    .bg-slideshow div:nth-child(7) { background-image: url('./seif7.jpg'); animation-delay: 24s; }
 
     @keyframes slideAnimation {
       0% { opacity: 0; } 5% { opacity: 1; } 17% { opacity: 1; } 22% { opacity: 0; } 100% { opacity: 0; }
@@ -57,6 +70,25 @@
     <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
   </div>
 
+  <!-- Match Images Modal -->
+  <div id="matchModal" class="video-modal" onclick="closeModalOnBackdrop(event)">
+    <div class="video-content" onclick="event.stopPropagation()">
+      <button class="close-video-btn" onclick="closeMatchModal()">&times;</button>
+      <h3 style="color:var(--accent-green); margin-top:5px; text-transform:uppercase;">Match Showcase</h3>
+      
+      <div class="match-images-container">
+        <div class="player-card-preview">
+          <p id="modalHomeName">Home Team</p>
+          <img id="modalHomeImg" src="" alt="Home Image">
+        </div>
+        <div class="player-card-preview">
+          <p id="modalAwayName">Away Team</p>
+          <img id="modalAwayImg" src="" alt="Away Image">
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="container">
     <h1>ULTIMATE TEAM <span>LEAGUE</span></h1>
     
@@ -66,7 +98,7 @@
       <a href="matches.html" class="active">Matches</a>
     </div>
 
-    <h2>⚽ ALL MATCHES</h2>
+    <h2>⚽ ALL MATCHES (Click match to view)</h2>
     <div class="matches-list" id="matches-container">
       <div style="text-align:center;">Loading Matches...</div>
     </div>
@@ -88,11 +120,26 @@
       'Seif': './seif.png'
     };
 
+    // ربط أسماء الفرق بصورهم بصيغة PNG التي قمت بإنشائها
+    const TEAM_CUSTOM_IMAGES = {
+      'Ahd': './ahd1.png',
+      'Angle': './angle2.png',
+      'Desoky': './desoky3.png',
+      'Eslam': './eslam4.png',
+      'Kamal': './kamal5.png',
+      'Loay': './loay6.png',
+      'Seif': './seif7.png'
+    };
+
     window.addEventListener('DOMContentLoaded', () => {
       if (window.supabase) {
         db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         loadMatches();
       }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMatchModal();
     });
 
     async function loadMatches() {
@@ -102,7 +149,8 @@
         if (!matches) return;
 
         let html = '';
-        matches.forEach(m => {
+        matches.matchesArray = matches; // حفظ البيانات مؤقتاً
+        matches.forEach((m, index) => {
           const homeLogo = TEAM_LOGOS[m.home_team] ? `<img src="${TEAM_LOGOS[m.home_team]}" class="team-logo">` : '';
           const awayLogo = TEAM_LOGOS[m.away_team] ? `<img src="${TEAM_LOGOS[m.away_team]}" class="team-logo">` : '';
           
@@ -111,7 +159,7 @@
             : 'VS';
 
           html += `
-            <div class="match-item">
+            <div class="match-item" onclick="openMatchModal('${m.home_team}', '${m.away_team}')">
               <div class="team-box">${homeLogo} <span>${m.home_team}</span></div>
               <div class="score-badge">${scoreDisplay}</div>
               <div class="team-box away"><span>${m.away_team}</span> ${awayLogo}</div>
@@ -123,6 +171,33 @@
 
       } catch (err) {
         console.error(err);
+      }
+    }
+
+    function openMatchModal(homeTeam, awayTeam) {
+      const modal = document.getElementById('matchModal');
+      const homeImg = document.getElementById('modalHomeImg');
+      const awayImg = document.getElementById('modalAwayImg');
+      const homeName = document.getElementById('modalHomeName');
+      const awayName = document.getElementById('modalAwayName');
+
+      // تعيين الأسماء والصور بناءً على القاموس
+      homeName.innerText = homeTeam;
+      awayName.innerText = awayTeam;
+
+      homeImg.src = TEAM_CUSTOM_IMAGES[homeTeam] || '';
+      awayImg.src = TEAM_CUSTOM_IMAGES[awayTeam] || '';
+
+      modal.style.display = 'flex';
+    }
+
+    function closeMatchModal() {
+      document.getElementById('matchModal').style.display = 'none';
+    }
+
+    function closeModalOnBackdrop(e) {
+      if (e.target.id === 'matchModal') {
+        closeMatchModal();
       }
     }
   </script>

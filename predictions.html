@@ -4,29 +4,27 @@
     
     let db;
     let currentUser = '';
-    let matchesMap = {}; // لربط كل مباراة بالـ ID الحقيقي لها في قاعدة البيانات
+    let matchesMap = {}; 
 
     window.addEventListener('DOMContentLoaded', async () => {
       if (window.supabase) {
         db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         await fetchMatchesMapping();
       }
+      
+      // فقط استرجاع الاسم المحفوظ في الـ input لو موجود، بدون إجبار تسجيل الدخول أوتوماتيك
       const savedUser = localStorage.getItem('league_username');
       if (savedUser) {
-        currentUser = savedUser;
         const inputEl = document.getElementById('usernameInput');
         if (inputEl) inputEl.value = savedUser;
-        loginUser();
       }
     });
 
-    // جلب جدول المباريات من Supabase لربط الجولات والأ فرق بالـ match_id الصحيح
     async function fetchMatchesMapping() {
       try {
         const { data, error } = await db.from('matches').select('*');
         if (error) throw error;
         if (data) {
-          // تخزين المباريات بحيث يمكننا معرفة الـ id الخاص بكل مباراة بناءً على الفريق المضيف والضيف
           data.forEach(m => {
             const key = `${m.home_team}_${m.away_team}`;
             matchesMap[key] = m.id;
@@ -69,8 +67,6 @@
       if (loginSec) loginSec.style.display = 'block';
     }
 
-    // خريطة توضح المباريات وترتيبها في الـ HTML لتسهيل حفظها واسترجاعها
-    // يتم مطابقة كل حقل إدخال مع الفريقين (Home vs Away)
     const matchesStructure = [
       // Round 1
       { r: 1, m: 1, home: 'Desoky', away: 'Seif' },
@@ -136,10 +132,7 @@
         return;
       }
 
-      // تحويل اسم المستخدم إلى رقمي (user_id) أو استخدام كود تعريفي ثابت إذا كان الجدول يتطلب رقم int8
-      // سنقوم بتحويل بسيط لـ hash رقمي لاسم المستخدم ليطابق نوع int8 في Supabase
       let userIdNum = Math.abs(hashCode(currentUser)) % 1000000;
-
       let upsertData = [];
 
       for (let item of matchesStructure) {
@@ -185,7 +178,6 @@
         if (error) throw error;
 
         if (data) {
-          // عكس خريطة المباريات للبحث بالـ match_id
           const idToMatch = {};
           for (let key in matchesMap) {
             idToMatch[matchesMap[key]] = key;

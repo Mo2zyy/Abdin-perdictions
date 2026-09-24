@@ -38,33 +38,20 @@
     .team-logo { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--accent-green); background: #000; object-fit: contain; }
 
     /* Video Popup Modal */
-    .video-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 9999; }
-    .video-content { position: relative; background: var(--card-bg); border: 2px solid var(--accent-green); border-radius: 12px; padding: 20px; width: 90%; max-width: 700px; box-shadow: 0 0 30px rgba(0,255,135,0.3); }
-    
-    /* زر الإغلاق داخل الكارت */
-    .close-video-btn { position: absolute; top: 10px; right: 10px; background: #ef4444; color: #fff; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; z-index: 10000; display: flex; justify-content: center; align-items: center; transition: transform 0.2s; }
-    .close-video-btn:hover { transform: scale(1.1); background: #dc2626; }
-    
-    /* Overlay Button for Sound Guarantee */
-    .play-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 8px; z-index: 10; cursor: pointer; }
-    .play-btn { background: var(--accent-green); color: #000; border: none; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 0 0 15px rgba(0,255,135,0.6); transition: transform 0.2s; }
-    .play-btn:hover { transform: scale(1.05); }
+    .video-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 2000; }
+    .video-content { position: relative; background: var(--card-bg); border: 2px solid var(--accent-green); border-radius: 12px; padding: 15px; width: 90%; max-width: 700px; box-shadow: 0 0 30px rgba(0,255,135,0.3); }
+    .close-video-btn { position: absolute; top: -12px; right: -12px; background: #ef4444; color: #fff; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; font-weight: bold; cursor: pointer; z-index: 2001; }
+    .video-wrapper { position: relative; width: 100%; border-radius: 8px; overflow: hidden; }
   </style>
 </head>
 <body>
 
-  <!-- Video Popup Modal (يغلق عند الضغط خارج الكارت) -->
-  <div id="videoModal" class="video-modal" onclick="closeVideoOnBackdrop(event)">
-    <div class="video-content" onclick="event.stopPropagation()">
+  <!-- Video Popup Modal -->
+  <div id="videoModal" class="video-modal">
+    <div class="video-content">
       <button class="close-video-btn" onclick="closeVideo()">&times;</button>
-      
-      <div style="position: relative; margin-top: 15px;">
-        <!-- زر التغلب على حظر الصوت -->
-        <div id="playOverlay" class="play-overlay" onclick="startVideoWithSound()">
-          <button class="play-btn">🔊 Watch Intro With Sound</button>
-        </div>
-
-        <video id="promoVideo" controls style="width:100%; display:block; border-radius:8px;">
+      <div class="video-wrapper">
+        <video id="promoVideo" autoplay muted playsinline controls style="width:100%; display:block; border-radius:8px;">
           <source src="intro.mp4" type="video/mp4">
           Your browser does not support the video tag.
         </video>
@@ -120,28 +107,21 @@
     };
 
     window.addEventListener('DOMContentLoaded', () => {
+      // 1. تشغيل قاعدة البيانات للجدول
       if (window.supabase) {
         db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         loadStandings();
       }
-    });
 
-    // إغلاق الفيديو بزرار ESC من الكيبورد
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeVideo();
-      }
-    });
-
-    function startVideoWithSound() {
+      // 2. تشغيل الفيديو تلقائياً فور تحميل الصفحة
       const video = document.getElementById('promoVideo');
-      const overlay = document.getElementById('playOverlay');
       if (video) {
-        video.muted = false;
-        video.play();
-        overlay.style.display = 'none';
+        video.muted = true; // كتم الصوت مؤقتاً لتخطي حظر التشغيل التلقائي في المتصفحات
+        video.play().catch(error => {
+          console.log("Autoplay was prevented:", error);
+        });
       }
-    }
+    });
 
     async function loadStandings() {
       try {
@@ -183,6 +163,7 @@
         let tableArray = Object.values(stats);
         tableArray.forEach(t => t.gd = t.gf - t.ga);
 
+        // الترتيب النقاط ثم فارق الأهداف
         tableArray.sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
 
         let html = '';
@@ -213,12 +194,6 @@
       const vid = document.getElementById('promoVideo');
       if (vid) vid.pause();
       document.getElementById('videoModal').style.display = 'none';
-    }
-
-    function closeVideoOnBackdrop(e) {
-      if (e.target.id === 'videoModal') {
-        closeVideo();
-      }
     }
   </script>
 </body>

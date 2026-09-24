@@ -2,26 +2,32 @@
     const SUPABASE_URL = 'https://ffdltukfzqxqrcpvrxxe.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZGx0dWtmenF4cXJjcHZyeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDc5NDQsImV4cCI6MjEwNTgyMzk0NH0.utVnf2aOG9yxRZoYlAoziDH_LY3Bvd3KkkmcwdY-IoY';
     
-    let db;
+    let db = null;
     let currentUser = '';
     let matchesMap = {}; 
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      if (window.supabase) {
-        db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        await fetchMatchesMapping();
-      }
-      
-      // فقط استرجاع الاسم المحفوظ في الـ input لو موجود، بدون إجبار تسجيل الدخول أوتوماتيك
-      const savedUser = localStorage.getItem('league_username');
-      if (savedUser) {
-        const inputEl = document.getElementById('usernameInput');
-        if (inputEl) inputEl.value = savedUser;
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        if (window.supabase) {
+          db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+          fetchMatchesMapping();
+        } else {
+          console.error('Supabase library is not loaded!');
+        }
+        
+        const savedUser = localStorage.getItem('league_username');
+        if (savedUser) {
+          const inputEl = document.getElementById('usernameInput');
+          if (inputEl) inputEl.value = savedUser;
+        }
+      } catch (e) {
+        console.error('Error during init:', e);
       }
     });
 
     async function fetchMatchesMapping() {
       try {
+        if (!db) return;
         const { data, error } = await db.from('matches').select('*');
         if (error) throw error;
         if (data) {
@@ -68,66 +74,52 @@
     }
 
     const matchesStructure = [
-      // Round 1
       { r: 1, m: 1, home: 'Desoky', away: 'Seif' },
       { r: 1, m: 2, home: 'Angle', away: 'Eslam' },
       { r: 1, m: 3, home: 'Loay', away: 'Ahd' },
-      // Round 2
       { r: 2, m: 1, home: 'Kamal', away: 'Desoky' },
       { r: 2, m: 2, home: 'Seif', away: 'Loay' },
       { r: 2, m: 3, home: 'Ahd', away: 'Eslam' },
-      // Round 3
       { r: 3, m: 1, home: 'Kamal', away: 'Angle' },
       { r: 3, m: 2, home: 'Desoky', away: 'Loay' },
       { r: 3, m: 3, home: 'Eslam', away: 'Seif' },
-      // Round 4
       { r: 4, m: 1, home: 'Loay', away: 'Kamal' },
       { r: 4, m: 2, home: 'Angle', away: 'Ahd' },
       { r: 4, m: 3, home: 'Eslam', away: 'Desoky' },
-      // Round 5
       { r: 5, m: 1, home: 'Ahd', away: 'Kamal' },
       { r: 5, m: 2, home: 'Loay', away: 'Eslam' },
       { r: 5, m: 3, home: 'Seif', away: 'Angle' },
-      // Round 6
       { r: 6, m: 1, home: 'Eslam', away: 'Kamal' },
       { r: 6, m: 2, home: 'Ahd', away: 'Seif' },
       { r: 6, m: 3, home: 'Desoky', away: 'Angle' },
-      // Round 7
       { r: 7, m: 1, home: 'Kamal', away: 'Seif' },
       { r: 7, m: 2, home: 'Desoky', away: 'Ahd' },
       { r: 7, m: 3, home: 'Loay', away: 'Angle' },
-      // Round 8
       { r: 8, m: 1, home: 'Seif', away: 'Desoky' },
       { r: 8, m: 2, home: 'Eslam', away: 'Angle' },
       { r: 8, m: 3, home: 'Ahd', away: 'Loay' },
-      // Round 9
       { r: 9, m: 1, home: 'Desoky', away: 'Kamal' },
       { r: 9, m: 2, home: 'Loay', away: 'Seif' },
       { r: 9, m: 3, home: 'Eslam', away: 'Ahd' },
-      // Round 10
       { r: 10, m: 1, home: 'Angle', away: 'Kamal' },
       { r: 10, m: 2, home: 'Loay', away: 'Desoky' },
       { r: 10, m: 3, home: 'Seif', away: 'Eslam' },
-      // Round 11
       { r: 11, m: 1, home: 'Kamal', away: 'Loay' },
       { r: 11, m: 2, home: 'Ahd', away: 'Angle' },
       { r: 11, m: 3, home: 'Desoky', away: 'Eslam' },
-      // Round 12
       { r: 12, m: 1, home: 'Kamal', away: 'Ahd' },
       { r: 12, m: 2, home: 'Eslam', away: 'Loay' },
       { r: 12, m: 3, home: 'Angle', away: 'Seif' },
-      // Round 13
       { r: 13, m: 1, home: 'Kamal', away: 'Eslam' },
       { r: 13, m: 2, home: 'Seif', away: 'Ahd' },
       { r: 13, m: 3, home: 'Angle', away: 'Desoky' },
-      // Round 14
       { r: 14, m: 1, home: 'Seif', away: 'Kamal' },
       { r: 14, m: 2, home: 'Ahd', away: 'Desoky' },
       { r: 14, m: 3, home: 'Angle', away: 'Loay' }
     ];
 
     async function savePredictions() {
-      if (!currentUser) {
+      if (!currentUser || !db) {
         alert('Please login first!');
         return;
       }
@@ -170,7 +162,7 @@
     }
 
     async function loadUserPredictions() {
-      if (!currentUser) return;
+      if (!currentUser || !db) return;
       let userIdNum = Math.abs(hashCode(currentUser)) % 1000000;
 
       try {

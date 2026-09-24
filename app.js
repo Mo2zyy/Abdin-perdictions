@@ -2,6 +2,7 @@ const SUPABASE_URL = 'https://ffdltukfzqxqrcpvrxxe.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZGx0dWtmenF4cXJjcHZyeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDc5NDQsImV4cCI6MjEwNTgyMzk0NH0.utVnf2aOG9yxRZoYlAoziDH_LY3Bvd3KkkmcwdY-IoY';
 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const TEAM_LOGOS = {
   'Ahd': 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Flag_of_Portugal.svg',
   'Angle': 'https://upload.wikimedia.org/wikipedia/commons/e/e0/National_Bank_of_Egypt_SC_logo.png',
@@ -69,13 +70,16 @@ async function loadMatches() {
       }
 
       const p = map[m.id] || {};
+      const homeLogo = TEAM_LOGOS[m.home_team] ? `<img src="${TEAM_LOGOS[m.home_team]}" style="width:24px; height:24px; vertical-align:middle; margin:0 5px;">` : '';
+      const awayLogo = TEAM_LOGOS[m.away_team] ? `<img src="${TEAM_LOGOS[m.away_team]}" style="width:24px; height:24px; vertical-align:middle; margin:0 5px;">` : '';
+
       html += `
-        <div class="match-card" data-match-id="${m.id}" style="display:flex; justify-between; align-items:center; margin-bottom:10px;">
-          <span class="team" style="flex:1; text-align:center;">${m.home_team}</span>
+        <div class="match-card" data-match-id="${m.id}" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; background:#1e293b; padding:10px; border-radius:8px;">
+          <span class="team" style="flex:1; text-align:right; font-weight:bold;">${homeLogo}${m.home_team}</span>
           <input type="number" min="0" class="score-input home-score" value="${p.predicted_home_score ?? ''}" style="width:40px; text-align:center;">
           <span style="margin: 0 5px;">-</span>
           <input type="number" min="0" class="score-input away-score" value="${p.predicted_away_score ?? ''}" style="width:40px; text-align:center;">
-          <span class="team" style="flex:1; text-align:center;">${m.away_team}</span>
+          <span class="team" style="flex:1; text-align:left; font-weight:bold;">${m.away_team}${awayLogo}</span>
         </div>
       `;
     });

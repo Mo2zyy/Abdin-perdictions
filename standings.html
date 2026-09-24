@@ -1,20 +1,170 @@
-<script>
-  const SUPABASE_URL = 'https://ffdltukfzqxqrcpvrxxe.supabase.co';
-  const SUPABASE_KEY = 'YOUR_KEY_HERE';
-  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ترتيب البطولة والمباريات - Ultimate Team League</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0b1329; color: #fff; margin: 0; padding: 20px; }
+    h1, h2 { text-align: center; color: #38bdf8; }
+    .container { max-width: 900px; margin: 0 auto; }
+    .nav { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+    .nav a { color: #38bdf8; text-decoration: none; padding: 8px 16px; background: #1e293b; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 10px; overflow: hidden; margin-bottom: 30px; }
+    th, td { padding: 12px 10px; text-align: center; border-bottom: 1px solid #334155; }
+    th { background: #0284c7; color: #fff; }
+    .player-cell { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: bold; }
+    .team-logo { width: 25px; height: 25px; object-fit: contain; }
+    .matches-grid { background: #1e293b; padding: 15px; border-radius: 10px; }
+    .match-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #334155; }
+    .score-box { background: #0f172a; padding: 4px 10px; border-radius: 5px; font-weight: bold; color: #f59e0b; }
+  </style>
+</head>
+<body>
 
-  // حط الكود هنا
-  const TEAM_LOGOS = {
-    'Ahd': 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Flag_of_Portugal.svg',
-    'Angle': 'https://upload.wikimedia.org/wikipedia/commons/e/e0/National_Bank_of_Egypt_SC_logo.png',
-    'Desoky': 'https://upload.wikimedia.org/wikipedia/en/7/70/Villarreal_CF_logo.svg',
-    'Eslam': 'https://upload.wikimedia.org/wikipedia/en/c/c5/Al_Nassr_FC_logo.svg',
-    'Kamal': 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
-    'Loay': 'https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg',
-    'Seif': 'https://upload.wikimedia.org/wikipedia/en/8/8c/Al_Ahly_SC_logo.svg'
-  };
+  <div class="container">
+    <h1>🏆 Ultimate Team League 🏆</h1>
+    
+    <div class="nav">
+      <a href="index.html">صفحة التوقعات</a>
+      <a href="standings.html" style="background:#0284c7; color:#fff;">جدول الترتيب والمباريات</a>
+    </div>
 
-  async function loadData() {
-    // باقي الكود...
-  }
-</script>
+    <h2>جدول الترتيب</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>اللاعب</th>
+          <th>لعب</th>
+          <th>فاز</th>
+          <th>تعادل</th>
+          <th>خسر</th>
+          <th>له</th>
+          <th>عليه</th>
+          <th>الفارق</th>
+          <th>النقاط</th>
+        </tr>
+      </thead>
+      <tbody id="standings-body">
+        <tr><td colspan="10">جاري حساب الترتيب...</td></tr>
+      </tbody>
+    </table>
+
+    <h2>جدول المباريات والنتائج</h2>
+    <div id="matches-container" class="matches-grid">
+      <p style="text-align:center;">جاري تحميل المباريات...</p>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://ffdltukfzqxqrcpvrxxe.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZGx0dWtmenF4cXJjcHZyeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDc5NDQsImV4cCI6MjEwNTgyMzk0NH0.utVnf2aOG9yxRZoYlAoziDH_LY3Bvd3KkkmcwdY-IoY';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const TEAM_LOGOS = {
+      'Ahd': 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Flag_of_Portugal.svg',
+      'Angle': 'https://upload.wikimedia.org/wikipedia/commons/e/e0/National_Bank_of_Egypt_SC_logo.png',
+      'Desoky': 'https://upload.wikimedia.org/wikipedia/en/7/70/Villarreal_CF_logo.svg',
+      'Eslam': 'https://upload.wikimedia.org/wikipedia/en/c/c5/Al_Nassr_FC_logo.svg',
+      'Kamal': 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
+      'Loay': 'https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg',
+      'Seif': 'https://upload.wikimedia.org/wikipedia/en/8/8c/Al_Ahly_SC_logo.svg'
+    };
+
+    const PLAYERS = ['Ahd', 'Angle', 'Desoky', 'Eslam', 'Kamal', 'Loay', 'Seif'];
+
+    async function loadData() {
+      const { data: matches } = await db.from('matches').select('*').order('id', { ascending: true });
+
+      // حساب الترتيب
+      const stats = {};
+      PLAYERS.forEach(p => {
+        stats[p] = { name: p, P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, PTS: 0 };
+      });
+
+      let matchesHtml = '';
+      let currentRound = 0;
+
+      if (matches) {
+        matches.forEach(m => {
+          // حساب النتائج إذا كان للمباراة نتيجة مسجلة (home_score & away_score)
+          if (m.home_score !== null && m.away_score !== null) {
+            const h = m.home_team;
+            const a = m.away_team;
+            const hs = m.home_score;
+            const as = m.away_score;
+
+            if (stats[h] && stats[a]) {
+              stats[h].P++; stats[a].P++;
+              stats[h].GF += hs; stats[h].GA += as;
+              stats[a].GF += as; stats[a].GA += hs;
+
+              if (hs > as) {
+                stats[h].W++; stats[h].PTS += 3;
+                stats[a].L++;
+              } else if (as > hs) {
+                stats[a].W++; stats[a].PTS += 3;
+                stats[h].L++;
+              } else {
+                stats[h].D++; stats[h].PTS += 1;
+                stats[a].D++; stats[a].PTS += 1;
+              }
+            }
+          }
+
+          // عرض المباريات
+          if (m.round_no !== currentRound) {
+            currentRound = m.round_no;
+            matchesHtml += `<h3 style="color:#38bdf8; margin-top:15px;">الجولة ${currentRound}</h3>`;
+          }
+
+          const hLogo = TEAM_LOGOS[m.home_team] ? `<img src="${TEAM_LOGOS[m.home_team]}" class="team-logo">` : '';
+          const aLogo = TEAM_LOGOS[m.away_team] ? `<img src="${TEAM_LOGOS[m.away_team]}" class="team-logo">` : '';
+          const scoreText = (m.home_score !== null && m.away_score !== null) ? `${m.home_score} - ${m.away_score}` : 'لم تلعب بعد';
+
+          matchesHtml += `
+            <div class="match-row">
+              <div class="player-cell">${hLogo} <span>${m.home_team}</span></div>
+              <div class="score-box">${scoreText}</div>
+              <div class="player-cell"><span>${m.away_team}</span> ${aLogo}</div>
+            </div>
+          `;
+        });
+      }
+
+      // حساب الفارق وترتيب اللاعبين
+      const sorted = Object.values(stats).map(s => {
+        s.GD = s.GF - s.GA;
+        return s;
+      }).sort((a, b) => b.PTS - a.PTS || b.GD - a.GD || b.GF - a.GF);
+
+      // عرض الجدول
+      let tableHtml = '';
+      sorted.forEach((s, index) => {
+        const logo = TEAM_LOGOS[s.name] ? `<img src="${TEAM_LOGOS[s.name]}" class="team-logo">` : '';
+        tableHtml += `
+          <tr>
+            <td>${index + 1}</td>
+            <td><div class="player-cell">${logo} <span>${s.name}</span></div></td>
+            <td>${s.P}</td>
+            <td>${s.W}</td>
+            <td>${s.D}</td>
+            <td>${s.L}</td>
+            <td>${s.GF}</td>
+            <td>${s.GA}</td>
+            <td>${s.GD}</td>
+            <td><strong>${s.PTS}</strong></td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('standings-body').innerHTML = tableHtml;
+      document.getElementById('matches-container').innerHTML = matchesHtml;
+    }
+
+    loadData();
+  </script>
+</body>
+</html>

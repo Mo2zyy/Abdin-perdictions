@@ -6,34 +6,45 @@
   <title>Ultimate Team League - التوقعات</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
-    .container { max-width: 800px; margin: 0 auto; }
-    h1 { text-align: center; color: #38bdf8; margin-bottom: 20px; }
-    
-    /* تنسيق أزرار التنقل الجديدة */
-    .nav { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
-    .nav a { color: #fff; text-decoration: none; padding: 10px 20px; background: #1e293b; border-radius: 8px; font-weight: bold; border: 1px solid #334155; }
-    .nav a.active { background: #0284c7; border-color: #38bdf8; }
+    :root {
+      --bg-dark: #0a0e14;
+      --card-bg: #121824;
+      --accent-green: #00ff87;
+      --text-white: #f8fafc;
+      --border-color: #1e293b;
+    }
 
-    .card { background: #1e293b; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-white); margin: 0; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    
+    h1 { text-align: center; color: var(--text-white); font-weight: 900; letter-spacing: 1px; font-size: 2rem; margin-bottom: 10px; }
+    h1 span { color: var(--accent-green); }
+
+    /* أزرار التنقل */
+    .nav { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
+    .nav a { color: var(--text-white); text-decoration: none; padding: 10px 24px; background: var(--card-bg); border-radius: 6px; font-weight: bold; border: 1px solid var(--border-color); transition: all 0.2s; }
+    .nav a.active { background: var(--accent-green); color: #000; border-color: var(--accent-green); }
+    .nav a:hover:not(.active) { border-color: var(--accent-green); }
+
+    .card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
     .hidden { display: none; }
-    input[type="text"], input[type="number"] { padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #fff; width: 100%; }
-    button { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
-    button:hover { background: #0369a1; }
-    .match-card { display: flex; align-items: center; justify-content: space-between; padding: 15px; border-bottom: 1px solid #334155; gap: 10px; }
+    input[type="text"], input[type="number"] { padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: #06090e; color: #fff; width: 100%; }
+    button { background: var(--accent-green); color: #000; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 15px; transition: background 0.2s; }
+    button:hover { background: #00cc6a; }
+    .match-card { display: flex; align-items: center; justify-content: space-between; padding: 15px; border-bottom: 1px solid var(--border-color); gap: 10px; }
     .team { flex: 1; text-align: center; font-weight: bold; }
     .score-input { width: 50px !important; text-align: center; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🏆 Ultimate Team League</h1>
+    <h1>EA SPORTS <span>FC LEAGUE</span></h1>
 
     <!-- أزرار التنقل بين الصفحات -->
     <div class="nav">
       <a href="index.html" class="active">صفحة التوقعات</a>
-      <a href="standings.html">جدول الترتيب والمباريات</a>
+      <a href="standings.html">الترتيب والمباريات</a>
     </div>
 
     <!-- شاشة تسجيل الدخول -->
@@ -46,10 +57,10 @@
 
     <!-- شاشة التوقعات -->
     <div id="predictions-section" class="card hidden">
-      <h2>مرحباً <span id="user-display-name" style="color: #38bdf8;"></span> 👋</h2>
+      <h2>مرحباً <span id="user-display-name" style="color: var(--accent-green);"></span> 👋</h2>
       <p>أدخل توقعاتك للمباريات القادمة:</p>
       <div id="matches-list">جاري تحميل المباريات...</div>
-      <button onclick="savePredictions()" style="margin-top: 20px; background: #22c55e;">حفظ التوقعات 💾</button>
+      <button onclick="savePredictions()" style="margin-top: 20px;">حفظ التوقعات 💾</button>
     </div>
   </div>
 

@@ -33,19 +33,23 @@
     th { background: rgba(6, 9, 14, 0.85); color: var(--accent-green); font-weight: bold; }
     tr:last-child td { border-bottom: none; }
     
-    /* صفوف الجدول قابلة للضغط */
     tbody tr { cursor: pointer; transition: background 0.2s, transform 0.1s; }
     tbody tr:hover { background: rgba(0, 255, 135, 0.08); }
 
     .team-cell { display: flex; align-items: center; gap: 10px; font-weight: bold; text-align: left; }
     .team-logo { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--accent-green); background: #000; object-fit: contain; }
 
-    /* Modal Styles */
-    .video-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 9999; }
-    .video-content { position: relative; background: #121824; border: 2px solid var(--accent-green); border-radius: 12px; padding: 20px; width: 90%; max-width: 550px; box-shadow: 0 0 30px rgba(0,255,135,0.3); text-align: center; }
+    /* Video Modal Styles */
+    .video-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 9999; }
+    .video-content { position: relative; background: #121824; border: 2px solid var(--accent-green); border-radius: 12px; padding: 20px; width: 90%; max-width: 700px; box-shadow: 0 0 30px rgba(0,255,135,0.3); text-align: center; }
     .close-video-btn { position: absolute; top: 10px; right: 10px; background: #ef4444; color: #fff; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; z-index: 10000; display: flex; justify-content: center; align-items: center; transition: transform 0.2s; }
     .close-video-btn:hover { transform: scale(1.1); background: #dc2626; }
     
+    .play-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 8px; z-index: 10; cursor: pointer; }
+    .play-btn { background: var(--accent-green); color: #000; border: none; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer; box-shadow: 0 0 15px rgba(0,255,135,0.6); transition: transform 0.2s; }
+    .play-btn:hover { transform: scale(1.05); }
+
+    /* Team Stats Modal Styles */
     .team-stats-preview img { width: 100%; max-height: 300px; border-radius: 8px; border: 1px solid var(--accent-green); background: #000; object-fit: cover; margin-bottom: 15px; }
     .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
     .stat-box { background: #06090e; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; }
@@ -75,8 +79,24 @@
     <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
   </div>
 
-  <!-- Team Stats & Image Modal -->
-  <div id="teamModal" class="video-modal" onclick="closeModalOnBackdrop(event)">
+  <!-- Intro Video Modal (يظهر عند فتح الموقع) -->
+  <div id="videoModal" class="video-modal" onclick="closeVideoOnBackdrop(event)">
+    <div class="video-content" onclick="event.stopPropagation()">
+      <button class="close-video-btn" onclick="closeVideo()">&times;</button>
+      <div style="position: relative; margin-top: 15px;">
+        <div id="playOverlay" class="play-overlay" onclick="startVideoWithSound()">
+          <button class="play-btn">🔊 Watch Intro With Sound</button>
+        </div>
+        <video id="promoVideo" controls style="width:100%; display:block; border-radius:8px;">
+          <source src="intro.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+  </div>
+
+  <!-- Team Stats & Image Modal (يظهر عند الضغط على الفريق) -->
+  <div id="teamModal" class="video-modal" style="display: none;" onclick="closeTeamModalOnBackdrop(event)">
     <div class="video-content" onclick="event.stopPropagation()">
       <button class="close-video-btn" onclick="closeTeamModal()">&times;</button>
       <h3 id="modalTeamName" style="color:var(--accent-green); margin-top:5px; text-transform:uppercase;">Team Stats</h3>
@@ -105,7 +125,7 @@
       <a href="matches.html">Matches</a>
     </div>
 
-    <h2>🏆 LEAGUE TABLE (Click team for stats)</h2>
+    <h2>🏆 LEAGUE TABLE</h2>
     <div class="table-container">
       <table>
         <thead>
@@ -127,7 +147,7 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZGx0dWtmenF4cXJjcHZyeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDc5NDQsImV4cCI6MjEwNTgyMzk0NH0.utVnf2aOG9yxRZoYlAoziDH_LY3Bvd3KkkmcwdY-IoY';
     
     let db;
-    let globalStandingsData = []; // لتخزين بيانات الفرق لعرضها عند الضغط
+    let globalStandingsData = [];
 
     const TEAM_LOGOS = {
       'Ahd': './ahd.png',
@@ -139,7 +159,6 @@
       'Seif': './seif.png'
     };
 
-    // ربط أسماء الفرق بصورهم بصيغة PNG الكبيرة
     const TEAM_CUSTOM_IMAGES = {
       'Ahd': './ahd1.png',
       'Angle': './angle2.png',
@@ -157,9 +176,26 @@
       }
     });
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeTeamModal();
+    document.addEventListener('keydown', (e) => { 
+      if (e.key === 'Escape') {
+        closeVideo();
+        closeTeamModal();
+      }
     });
+
+    function startVideoWithSound() {
+      const video = document.getElementById('promoVideo');
+      const overlay = document.getElementById('playOverlay');
+      if (video) { video.muted = false; video.play(); overlay.style.display = 'none'; }
+    }
+
+    function closeVideo() {
+      const vid = document.getElementById('promoVideo');
+      if (vid) vid.pause();
+      document.getElementById('videoModal').style.display = 'none';
+    }
+
+    function closeVideoOnBackdrop(e) { if (e.target.id === 'videoModal') closeVideo(); }
 
     async function loadStandings() {
       try {
@@ -193,7 +229,7 @@
         tableArray.forEach(t => t.gd = t.gf - t.ga);
         tableArray.sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
         
-        globalStandingsData = tableArray; // حفظ البيانات للاستخدام عند الضغط
+        globalStandingsData = tableArray;
 
         let html = '';
         tableArray.forEach((t, i) => {
@@ -234,7 +270,7 @@
       document.getElementById('teamModal').style.display = 'none';
     }
 
-    function closeModalOnBackdrop(e) {
+    function closeTeamModalOnBackdrop(e) {
       if (e.target.id === 'teamModal') {
         closeTeamModal();
       }

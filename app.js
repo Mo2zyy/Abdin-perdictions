@@ -147,7 +147,7 @@ async function savePredictions() {
 
     if (hInput && aInput && hInput.value !== '' && aInput.value !== '') {
       upsertData.push({
-        username: currentUser,      // حفظ الاسم صريحاً في العمود الجديد
+        username: currentUser,      // حفظ الاسم صريحاً
         user_id: 1,                 // قيمة افتراضية لتفادي قيود الـ integer
         match_id: matchId,
         predicted_home_score: parseInt(hInput.value),
@@ -173,7 +173,7 @@ async function savePredictions() {
   }
 }
 
-// تحميل توقعات المستخدم السابقة ومقارنتها بالنتائج الحقيقية وعرض النقاط
+// تحميل توقعات المستخدم السابقة ومقارنتها بالنتائج الحقيقية وعرض النقاط (النسخة النهائية المضمونة)
 async function loadUserPredictions() {
   if (!currentUser) return;
 
@@ -203,20 +203,16 @@ async function loadUserPredictions() {
             if (hInput) hInput.value = p.predicted_home_score;
             if (aInput) aInput.value = p.predicted_away_score;
 
-            // جلب النتيجة الحقيقية للماتش وحساب النقاط تلقائياً
+            // جلب النتيجة الحقيقية للماتش من Supabase
             const realMatch = matchesDict[p.match_id];
+            
             if (realMatch && realMatch.home_score !== null && realMatch.home_score !== undefined && 
                 realMatch.away_score !== null && realMatch.away_score !== undefined) {
               
               let points = 0;
-              
-              // قواعد حساب النقاط:
-              // 3 نقاط للنتيجة الصحيحة تماماً
               if (p.predicted_home_score === realMatch.home_score && p.predicted_away_score === realMatch.away_score) {
                 points = 3;
-              } 
-              // نقطة واحدة لو توقع الفائز صح أو التعادل صح
-              else if (
+              } else if (
                 (p.predicted_home_score > p.predicted_away_score && realMatch.home_score > realMatch.away_score) ||
                 (p.predicted_home_score < p.predicted_away_score && realMatch.home_score < realMatch.away_score) ||
                 (p.predicted_home_score === p.predicted_away_score && realMatch.home_score === realMatch.away_score)
@@ -224,17 +220,15 @@ async function loadUserPredictions() {
                 points = 1;
               }
 
-              // إنشاء صندوق صغير تحت خانة الإدخال لعرض النتيجة الحقيقية والنقاط
-              let scoreInputsContainer = hInput.closest('.score-inputs');
-              if (!scoreInputsContainer) scoreInputsContainer = hInput.parentElement;
-              
-              let infoBox = scoreInputsContainer.querySelector('.match-result-info');
+              // إنشاء صندوق عرض النتيجة الفعليّة والنقاط تحت الماتش مباشرة
+              let parentBox = hInput.parentElement;
+              let infoBox = parentBox.querySelector('.match-result-info');
               
               if (!infoBox) {
                 infoBox = document.createElement('div');
                 infoBox.className = 'match-result-info';
-                infoBox.style.cssText = 'font-size: 11px; color: #00ff87; text-align: center; margin-top: 4px; font-weight: bold;';
-                scoreInputsContainer.appendChild(infoBox);
+                infoBox.style.cssText = 'font-size: 11px; color: #00ff87; background: rgba(0, 255, 135, 0.1); padding: 3px 6px; border-radius: 4px; margin-top: 4px; text-align: center; font-weight: bold; width: 100%;';
+                parentBox.appendChild(infoBox);
               }
               
               infoBox.innerHTML = `النتيجة الفعلية: (${realMatch.home_score} - ${realMatch.away_score}) | النقاط: <span style="color: #ffcc00;">+${points}</span>`;
@@ -244,7 +238,7 @@ async function loadUserPredictions() {
       });
     }
   } catch (err) {
-    console.error('Error loading predictions and results:', err);
+    console.error('خطأ أثناء تحميل التوقعات وعرض النتائج:', err);
   }
 }
 

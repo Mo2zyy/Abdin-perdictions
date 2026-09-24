@@ -3,67 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>توقعات Ultimate Team League</title>
+  <title>Ultimate Team League - التوقعات</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background-color: #0f172a; color: #f8fafc; padding: 20px; display: flex; justify-content: center; }
-    .container { width: 100%; max-width: 500px; }
-    h1 { text-align: center; color: #38bdf8; margin-bottom: 20px; font-size: 24px; }
-    .card { background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
-    input[type="text"] { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 16px; }
-    input[type="number"] { width: 50px; padding: 8px; text-align: center; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 18px; font-weight: bold; }
-    button { width: 100%; background: #0284c7; color: white; border: none; padding: 12px; margin-top: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { text-align: center; color: #38bdf8; margin-bottom: 30px; }
+    .card { background: #1e293b; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
+    .hidden { display: none; }
+    input[type="text"], input[type="number"] { padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #fff; width: 100%; }
+    button { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
     button:hover { background: #0369a1; }
-    .match-row { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
-    .player-name { font-weight: bold; width: 35%; text-align: center; font-size: 15px; }
-    .save-btn { background: #10b981; }
-    .save-btn:hover { background: #059669; }
-    .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-    .tabs button { flex: 1; background: #334155; }
-    .tabs button.active { background: #0284c7; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { padding: 10px; text-align: center; border-bottom: 1px solid #334155; }
-    th { color: #38bdf8; }
+    .match-card { display: flex; align-items: center; justify-content: space-between; padding: 15px; border-bottom: 1px solid #334155; gap: 10px; }
+    .team { flex: 1; text-align: center; font-weight: bold; }
+    .score-input { width: 50px !important; text-align: center; }
   </style>
 </head>
 <body>
-
   <div class="container">
     <h1>🏆 Ultimate Team League</h1>
 
-    <!-- تسجيل الدخول -->
-    <div id="login-sec" class="card">
-      <h3 style="margin-bottom: 8px;">تسجيل دخول المتوقعين</h3>
-      <p style="color: #94a3b8; font-size: 14px;">ادخل اسمك أو الكود الخاص بك:</p>
-      <input type="text" id="user-code" placeholder="مثال: Desoky">
+    <!-- شاشة تسجيل الدخول -->
+    <div id="login-section" class="card">
+      <h2>تسجيل الدخول / إنشاء حساب</h2>
+      <p>أدخل اسمك للمتابعة:</p>
+      <input type="text" id="username-input" placeholder="مثال: Desoky">
       <button onclick="login()">دخول</button>
     </div>
 
-    <!-- المحتوى الرئيسي -->
-    <div id="app-sec" style="display:none;">
-      <div class="tabs">
-        <button id="btn-matches" class="active" onclick="switchTab('matches')">المباريات</button>
-        <button id="btn-leaderboard" onclick="switchTab('leaderboard')">جدول الترتيب</button>
-      </div>
-
-      <div id="tab-matches">
-        <div id="matches-list"></div>
-      </div>
-
-      <div id="tab-leaderboard" style="display:none;" class="card">
-        <h3>ترتيب المتوقعين</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>المشارك</th>
-              <th>النقاط</th>
-            </tr>
-          </thead>
-          <tbody id="leaderboard-body"></tbody>
-        </table>
-      </div>
+    <!-- شاشة التوقعات -->
+    <div id="predictions-section" class="card hidden">
+      <h2>مرحباً <span id="user-display-name" style="color: #38bdf8;"></span> 👋</h2>
+      <p>أدخل توقعاتك للمباريات القادمة:</p>
+      <div id="matches-list">جاري تحميل المباريات...</div>
+      <button onclick="savePredictions()" style="margin-top: 20px; background: #22c55e;">حفظ التوقعات 💾</button>
     </div>
   </div>
 

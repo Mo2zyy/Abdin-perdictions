@@ -1,201 +1,257 @@
-<script>
-  const SUPABASE_URL = 'https://ffdltukfzqxqrcpvrxxe.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZGx0dWtmenF4cXJjcHZyeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDc5NDQsImV4cCI6MjEwNTgyMzk0NH0.utVnf2aOG9yxRZoYlAoziDH_LY3Bvd3KkkmcwdY-IoY';
-  
-  let db;
-  let currentUser = '';
-  let matchesMap = {}; 
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>League Predictions</title>
+  <!-- مكتبة Supabase الأساسية -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
+    .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    h1, h2 { text-align: center; color: #1e293b; }
+    .section { margin-bottom: 20px; }
+    .btn { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+    .btn:hover { background: #1d4ed8; }
+    .btn-danger { background: #dc2626; }
+    .btn-danger:hover { background: #b91c1c; }
+    input[type="text"], input[type="number"] { padding: 8px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 4px; }
+    input[type="number"] { width: 60px; text-align: center; }
+    .match-row { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 10px; margin-bottom: 8px; border-radius: 4px; border: 1px solid #e2e8f0; }
+  </style>
+</head>
+<body>
 
-  window.addEventListener('DOMContentLoaded', async () => {
-    if (window.supabase) {
-      db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      await fetchMatchesMapping();
-    }
+  <div class="container">
+    <h1>League Predictions</h1>
+
+    <!-- قسم تسجيل الدخول -->
+    <div id="loginSection" class="section" style="text-align: center; padding: 40px 0;">
+      <h2>Enter Your Name to Predict</h2>
+      <input type="text" id="usernameInput" placeholder="Your Name..." style="width: 250px; margin-right: 10px;">
+      <button class="btn" onclick="loginUser()">Login / Start</button>
+    </div>
+
+    <!-- قسم محتوى التوقعات (مخفي لحين تسجيل الدخول) -->
+    <div id="predictionsContent" class="section" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3>Welcome, <span id="displayName" style="color: #2563eb;"></span></h3>
+        <button class="btn btn-danger" onclick="logoutUser()">Logout</button>
+      </div>
+
+      <div id="matchesContainer">
+        <!-- سيتم توليد المباريات هنا تلقائياً أو تضع الجدول الخاص بك -->
+        <p>Ready to make your predictions for all 14 rounds!</p>
+      </div>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <button class="btn" onclick="savePredictions()">Save Predictions 🚀</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://ffdltukfzqxqrcpvrxxe.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZGx0dWtmenF4cXJjcHZyeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDc5NDQsImV4cCI6MjEwNTgyMzk0NH0.utVnf2aOG9yxRZoYlAoziDH_LY3Bvd3KkkmcwdY-IoY';
     
-    const savedUser = localStorage.getItem('league_username');
-    if (savedUser) {
-      const inputEl = document.getElementById('usernameInput');
-      if (inputEl) inputEl.value = savedUser;
-    }
-  });
+    let db;
+    let currentUser = '';
+    let matchesMap = {}; 
 
-  async function fetchMatchesMapping() {
-    try {
-      const { data, error } = await db.from('matches').select('*');
-      if (error) throw error;
-      if (data) {
-        data.forEach(m => {
-          const key = `${m.home_team}_${m.away_team}`;
-          matchesMap[key] = m.id;
-        });
+    window.addEventListener('DOMContentLoaded', async () => {
+      if (window.supabase) {
+        db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        await fetchMatchesMapping();
+      } else {
+        console.error('Supabase library failed to load.');
       }
-    } catch (err) {
-      console.error('Error fetching matches mapping:', err);
-    }
-  }
-
-  function loginUser() {
-    const inputEl = document.getElementById('usernameInput');
-    const name = inputEl ? inputEl.value.trim() : '';
-    if (!name) {
-      alert('Please enter your name first!');
-      return;
-    }
-    currentUser = name;
-    localStorage.setItem('league_username', currentUser);
-    
-    const displayEl = document.getElementById('displayName');
-    if (displayEl) displayEl.innerText = currentUser;
-    
-    const loginSec = document.getElementById('loginSection');
-    const predContent = document.getElementById('predictionsContent');
-    
-    if (loginSec) loginSec.style.display = 'none';
-    if (predContent) predContent.style.display = 'block';
-
-    loadUserPredictions();
-  }
-
-  function logoutUser() {
-    localStorage.removeItem('league_username');
-    currentUser = '';
-    const loginSec = document.getElementById('loginSection');
-    const predContent = document.getElementById('predictionsContent');
-    
-    if (predContent) predContent.style.display = 'none';
-    if (loginSec) loginSec.style.display = 'block';
-  }
-
-  const matchesStructure = [
-    { r: 1, m: 1, home: 'Desoky', away: 'Seif' },
-    { r: 1, m: 2, home: 'Angle', away: 'Eslam' },
-    { r: 1, m: 3, home: 'Loay', away: 'Ahd' },
-    { r: 2, m: 1, home: 'Kamal', away: 'Desoky' },
-    { r: 2, m: 2, home: 'Seif', away: 'Loay' },
-    { r: 2, m: 3, home: 'Ahd', away: 'Eslam' },
-    { r: 3, m: 1, home: 'Kamal', away: 'Angle' },
-    { r: 3, m: 2, home: 'Desoky', away: 'Loay' },
-    { r: 3, m: 3, home: 'Eslam', away: 'Seif' },
-    { r: 4, m: 1, home: 'Loay', away: 'Kamal' },
-    { r: 4, m: 2, home: 'Angle', away: 'Ahd' },
-    { r: 4, m: 3, home: 'Eslam', away: 'Desoky' },
-    { r: 5, m: 1, home: 'Ahd', away: 'Kamal' },
-    { r: 5, m: 2, home: 'Loay', away: 'Eslam' },
-    { r: 5, m: 3, home: 'Seif', away: 'Angle' },
-    { r: 6, m: 1, home: 'Eslam', away: 'Kamal' },
-    { r: 6, m: 2, home: 'Ahd', away: 'Seif' },
-    { r: 6, m: 3, home: 'Desoky', away: 'Angle' },
-    { r: 7, m: 1, home: 'Kamal', away: 'Seif' },
-    { r: 7, m: 2, home: 'Desoky', away: 'Ahd' },
-    { r: 7, m: 3, home: 'Loay', away: 'Angle' },
-    { r: 8, m: 1, home: 'Seif', away: 'Desoky' },
-    { r: 8, m: 2, home: 'Eslam', away: 'Angle' },
-    { r: 8, m: 3, home: 'Ahd', away: 'Loay' },
-    { r: 9, m: 1, home: 'Desoky', away: 'Kamal' },
-    { r: 9, m: 2, home: 'Loay', away: 'Seif' },
-    { r: 9, m: 3, home: 'Eslam', away: 'Ahd' },
-    { r: 10, m: 1, home: 'Angle', away: 'Kamal' },
-    { r: 10, m: 2, home: 'Loay', away: 'Desoky' },
-    { r: 10, m: 3, home: 'Seif', away: 'Eslam' },
-    { r: 11, m: 1, home: 'Kamal', away: 'Loay' },
-    { r: 11, m: 2, home: 'Ahd', away: 'Angle' },
-    { r: 11, m: 3, home: 'Desoky', away: 'Eslam' },
-    { r: 12, m: 1, home: 'Kamal', away: 'Ahd' },
-    { r: 12, m: 2, home: 'Eslam', away: 'Loay' },
-    { r: 12, m: 3, home: 'Angle', away: 'Seif' },
-    { r: 13, m: 1, home: 'Kamal', away: 'Eslam' },
-    { r: 13, m: 2, home: 'Seif', away: 'Ahd' },
-    { r: 13, m: 3, home: 'Angle', away: 'Desoky' },
-    { r: 14, m: 1, home: 'Seif', away: 'Kamal' },
-    { r: 14, m: 2, home: 'Ahd', away: 'Desoky' },
-    { r: 14, m: 3, home: 'Angle', away: 'Loay' }
-  ];
-
-  async function savePredictions() {
-    if (!currentUser) {
-      alert('Please login first!');
-      return;
-    }
-
-    let userIdNum = Math.abs(hashCode(currentUser)) % 1000000;
-    let upsertData = [];
-
-    for (let item of matchesStructure) {
-      const matchKey = `${item.home}_${item.away}`;
-      const matchId = matchesMap[matchKey];
-
-      if (!matchId) continue;
-
-      const hInput = document.getElementById(`p_r${item.r}_m${item.m}_h`);
-      const aInput = document.getElementById(`p_r${item.r}_m${item.m}_a`);
-
-      if (hInput && aInput && hInput.value !== '' && aInput.value !== '') {
-        upsertData.push({
-          user_id: userIdNum,
-          match_id: matchId,
-          predicted_home_score: parseInt(hInput.value),
-          predicted_away_score: parseInt(aInput.value)
-        });
+      
+      const savedUser = localStorage.getItem('league_username');
+      if (savedUser) {
+        const inputEl = document.getElementById('usernameInput');
+        if (inputEl) inputEl.value = savedUser;
       }
-    }
+    });
 
-    if (upsertData.length === 0) {
-      alert('Please fill at least one prediction before saving!');
-      return;
-    }
-
-    try {
-      const { error } = await db.from('predictions').upsert(upsertData, { onConflict: 'user_id,match_id' });
-      if (error) throw error;
-      alert('Predictions saved successfully! 🚀');
-    } catch (err) {
-      console.error('Error saving predictions:', err);
-      alert('Failed to save predictions. Check console for details.');
-    }
-  }
-
-  async function loadUserPredictions() {
-    if (!currentUser) return;
-    let userIdNum = Math.abs(hashCode(currentUser)) % 1000000;
-
-    try {
-      const { data, error } = await db.from('predictions').select('*').eq('user_id', userIdNum);
-      if (error) throw error;
-
-      if (data) {
-        const idToMatch = {};
-        for (let key in matchesMap) {
-          idToMatch[matchesMap[key]] = key;
+    async function fetchMatchesMapping() {
+      try {
+        const { data, error } = await db.from('matches').select('*');
+        if (error) throw error;
+        if (data) {
+          data.forEach(m => {
+            const key = `${m.home_team}_${m.away_team}`;
+            matchesMap[key] = m.id;
+          });
         }
-
-        data.forEach(p => {
-          const matchKey = idToMatch[p.match_id];
-          if (matchKey) {
-            const struct = matchesStructure.find(s => `${s.home}_${s.away}` === matchKey);
-            if (struct) {
-              const hInput = document.getElementById(`p_r${struct.r}_m${struct.m}_h`);
-              const aInput = document.getElementById(`p_r${struct.r}_m${struct.m}_a`);
-              if (hInput) hInput.value = p.predicted_home_score;
-              if (aInput) aInput.value = p.predicted_away_score;
-            }
-          }
-        });
+      } catch (err) {
+        console.error('Error fetching matches mapping:', err);
       }
-    } catch (err) {
-      console.error('Error loading predictions:', err);
     }
-  }
 
-  function hashCode(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = (hash << 5) - hash + str.charCodeAt(i);
-      hash |= 0;
+    function loginUser() {
+      const inputEl = document.getElementById('usernameInput');
+      const name = inputEl ? inputEl.value.trim() : '';
+      if (!name) {
+        alert('Please enter your name first!');
+        return;
+      }
+      currentUser = name;
+      localStorage.setItem('league_username', currentUser);
+      
+      const displayEl = document.getElementById('displayName');
+      if (displayEl) displayEl.innerText = currentUser;
+      
+      const loginSec = document.getElementById('loginSection');
+      const predContent = document.getElementById('predictionsContent');
+      
+      if (loginSec) loginSec.style.display = 'none';
+      if (predContent) predContent.style.display = 'block';
+
+      loadUserPredictions();
     }
-    return hash;
-  }
 
-  function sharePredictions() {
-    alert('Feature coming soon! You can take a screenshot of your predictions to share with friends.');
-  }
-</script>
+    function logoutUser() {
+      localStorage.removeItem('league_username');
+      currentUser = '';
+      const loginSec = document.getElementById('loginSection');
+      const predContent = document.getElementById('predictionsContent');
+      
+      if (predContent) predContent.style.display = 'none';
+      if (loginSec) loginSec.style.display = 'block';
+    }
+
+    const matchesStructure = [
+      { r: 1, m: 1, home: 'Desoky', away: 'Seif' },
+      { r: 1, m: 2, home: 'Angle', away: 'Eslam' },
+      { r: 1, m: 3, home: 'Loay', away: 'Ahd' },
+      { r: 2, m: 1, home: 'Kamal', away: 'Desoky' },
+      { r: 2, m: 2, home: 'Seif', away: 'Loay' },
+      { r: 2, m: 3, home: 'Ahd', away: 'Eslam' },
+      { r: 3, m: 1, home: 'Kamal', away: 'Angle' },
+      { r: 3, m: 2, home: 'Desoky', away: 'Loay' },
+      { r: 3, m: 3, home: 'Eslam', away: 'Seif' },
+      { r: 4, m: 1, home: 'Loay', away: 'Kamal' },
+      { r: 4, m: 2, home: 'Angle', away: 'Ahd' },
+      { r: 4, m: 3, home: 'Eslam', away: 'Desoky' },
+      { r: 5, m: 1, home: 'Ahd', away: 'Kamal' },
+      { r: 5, m: 2, home: 'Loay', away: 'Eslam' },
+      { r: 5, m: 3, home: 'Seif', away: 'Angle' },
+      { r: 6, m: 1, home: 'Eslam', away: 'Kamal' },
+      { r: 6, m: 2, home: 'Ahd', away: 'Seif' },
+      { r: 6, m: 3, home: 'Desoky', away: 'Angle' },
+      { r: 7, m: 1, home: 'Kamal', away: 'Seif' },
+      { r: 7, m: 2, home: 'Desoky', away: 'Ahd' },
+      { r: 7, m: 3, home: 'Loay', away: 'Angle' },
+      { r: 8, m: 1, home: 'Seif', away: 'Desoky' },
+      { r: 8, m: 2, home: 'Eslam', away: 'Angle' },
+      { r: 8, m: 3, home: 'Ahd', away: 'Loay' },
+      { r: 9, m: 1, home: 'Desoky', away: 'Kamal' },
+      { r: 9, m: 2, home: 'Loay', away: 'Seif' },
+      { r: 9, m: 3, home: 'Eslam', away: 'Ahd' },
+      { r: 10, m: 1, home: 'Angle', away: 'Kamal' },
+      { r: 10, m: 2, home: 'Loay', away: 'Desoky' },
+      { r: 10, m: 3, home: 'Seif', away: 'Eslam' },
+      { r: 11, m: 1, home: 'Kamal', away: 'Loay' },
+      { r: 11, m: 2, home: 'Ahd', away: 'Angle' },
+      { r: 11, m: 3, home: 'Desoky', away: 'Eslam' },
+      { r: 12, m: 1, home: 'Kamal', away: 'Ahd' },
+      { r: 12, m: 2, home: 'Eslam', away: 'Loay' },
+      { r: 12, m: 3, home: 'Angle', away: 'Seif' },
+      { r: 13, m: 1, home: 'Kamal', away: 'Eslam' },
+      { r: 13, m: 2, home: 'Seif', away: 'Ahd' },
+      { r: 13, m: 3, home: 'Angle', away: 'Desoky' },
+      { r: 14, m: 1, home: 'Seif', away: 'Kamal' },
+      { r: 14, m: 2, home: 'Ahd', away: 'Desoky' },
+      { r: 14, m: 3, home: 'Angle', away: 'Loay' }
+    ];
+
+    async function savePredictions() {
+      if (!currentUser) {
+        alert('Please login first!');
+        return;
+      }
+
+      let userIdNum = Math.abs(hashCode(currentUser)) % 1000000;
+      let upsertData = [];
+
+      for (let item of matchesStructure) {
+        const matchKey = `${item.home}_${item.away}`;
+        const matchId = matchesMap[matchKey];
+
+        if (!matchId) continue;
+
+        const hInput = document.getElementById(`p_r${item.r}_m${item.m}_h`);
+        const aInput = document.getElementById(`p_r${item.r}_m${item.m}_a`);
+
+        if (hInput && aInput && hInput.value !== '' && aInput.value !== '') {
+          upsertData.push({
+            user_id: userIdNum,
+            match_id: matchId,
+            predicted_home_score: parseInt(hInput.value),
+            predicted_away_score: parseInt(aInput.value)
+          });
+        }
+      }
+
+      if (upsertData.length === 0) {
+        alert('Please fill at least one prediction before saving!');
+        return;
+      }
+
+      try {
+        const { error } = await db.from('predictions').upsert(upsertData, { onConflict: 'user_id,match_id' });
+        if (error) throw error;
+        alert('Predictions saved successfully! 🚀');
+      } catch (err) {
+        console.error('Error saving predictions:', err);
+        alert('Failed to save predictions. Check console for details.');
+      }
+    }
+
+    async function loadUserPredictions() {
+      if (!currentUser) return;
+      let userIdNum = Math.abs(hashCode(currentUser)) % 1000000;
+
+      try {
+        const { data, error } = await db.from('predictions').select('*').eq('user_id', userIdNum);
+        if (error) throw error;
+
+        if (data) {
+          const idToMatch = {};
+          for (let key in matchesMap) {
+            idToMatch[matchesMap[key]] = key;
+          }
+
+          data.forEach(p => {
+            const matchKey = idToMatch[p.match_id];
+            if (matchKey) {
+              const struct = matchesStructure.find(s => `${s.home}_${s.away}` === matchKey);
+              if (struct) {
+                const hInput = document.getElementById(`p_r${struct.r}_m${struct.m}_h`);
+                const aInput = document.getElementById(`p_r${struct.r}_m${struct.m}_a`);
+                if (hInput) hInput.value = p.predicted_home_score;
+                if (aInput) aInput.value = p.predicted_away_score;
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Error loading predictions:', err);
+      }
+    }
+
+    function hashCode(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return hash;
+    }
+
+    function sharePredictions() {
+      alert('Feature coming soon! You can take a screenshot of your predictions to share with friends.');
+    }
+  </script>
+</body>
+</html>

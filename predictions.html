@@ -1,541 +1,45 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ULTIMATE TEAM LEAGUE - Predictions & Points</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <style>
-    :root {
-      --bg-dark: #0a0e14;
-      --card-bg: rgba(18, 24, 36, 0.90);
-      --accent-green: #00ff87;
-      --text-white: #f8fafc;
-      --border-color: #1e293b;
-    }
-
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-white); margin: 0; padding: 20px; position: relative; min-height: 100vh; }
-    .container { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
-    
-    h1 { text-align: center; color: var(--text-white); font-weight: 900; letter-spacing: 1px; font-size: 2.2rem; margin-bottom: 10px; }
-    h1 span { color: var(--accent-green); }
-    h2 { text-align: center; color: var(--accent-green); margin-bottom: 20px; text-transform: uppercase; font-size: 1.4rem; }
-    
-    .nav { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-    .nav a { color: var(--text-white); text-decoration: none; padding: 10px 18px; background: var(--card-bg); border-radius: 6px; font-weight: bold; border: 1px solid var(--border-color); transition: all 0.2s; font-size: 14px; backdrop-filter: blur(5px); }
-    .nav a.active { background: var(--accent-green); color: #000; border-color: var(--accent-green); }
-    .nav a:hover:not(.active) { border-color: var(--accent-green); }
-
-    /* Login Box (Name Only) */
-    .login-box { background: var(--card-bg); border: 2px solid var(--accent-green); border-radius: 12px; padding: 30px; text-align: center; max-width: 450px; margin: 50px auto; box-shadow: 0 0 30px rgba(0,255,135,0.2); }
-    .login-box input { width: 100%; padding: 12px; margin: 15px 0; background: #06090e; border: 1px solid var(--border-color); color: #fff; border-radius: 6px; font-size: 16px; text-align: center; }
-    .login-box input:focus { border-color: var(--accent-green); outline: none; }
-    .login-btn { background: var(--accent-green); color: #000; border: none; padding: 12px 25px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; transition: transform 0.2s; }
-    .login-btn:hover { transform: scale(1.02); }
-
-    /* Predictions Content */
-    #predictionsContent { display: none; }
-    .user-welcome { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 25px; }
-    .user-welcome span { color: var(--accent-green); font-weight: bold; font-size: 1.1rem; }
-    .logout-btn { background: #ef4444; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-
-    /* Deadlines */
-    .deadline-card { background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; padding: 12px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
-    .deadline-card span { color: #f87171; font-weight: bold; }
-
-    /* Points & Scoring Rules Card */
-    .rules-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 25px; font-size: 13px; line-height: 1.6; }
-    .rules-card h4 { color: var(--accent-green); margin-top: 0; text-transform: uppercase; font-size: 1rem; }
-    .rules-card ul { padding-left: 20px; margin: 5px 0; color: #cbd5e1; }
-
-    /* Rounds & Matches */
-    .round-section { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px; overflow: hidden; backdrop-filter: blur(10px); }
-    .round-title { background: rgba(6, 9, 14, 0.85); color: var(--accent-green); padding: 12px 15px; font-weight: bold; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); }
-    
-    .match-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-size: 14px; }
-    .match-row:last-child { border-bottom: none; }
-    .match-teams { flex: 1; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; text-align: center; }
-    
-    .team-badge-container { display: flex; align-items: center; gap: 6px; }
-    .team-logo { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--accent-green); background: #000; object-fit: contain; }
-
-    .score-inputs { display: flex; align-items: center; gap: 6px; }
-    .score-inputs input { width: 45px; height: 35px; background: #06090e; border: 1px solid var(--border-color); color: #fff; text-align: center; border-radius: 4px; font-size: 15px; font-weight: bold; }
-    .score-inputs input:focus { border-color: var(--accent-green); outline: none; }
-
-    .actions-container { display: flex; gap: 15px; justify-content: center; margin: 30px 0; flex-wrap: wrap; }
-    .btn-action { background: var(--accent-green); color: #000; border: none; padding: 14px 30px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 0 15px rgba(0,255,135,0.3); transition: transform 0.2s; }
-    .btn-action:hover { transform: scale(1.05); }
-    .btn-share { background: #3b82f6; color: #fff; box-shadow: 0 0 15px rgba(59,130,246,0.3); }
-
-    /* Background Slideshow */
-    .bg-slideshow { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; }
-    .bg-slideshow div { position: absolute; width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0; animation: slideAnimation 28s infinite; filter: brightness(0.35); }
-    .bg-slideshow div:nth-child(1) { background-image: url('./ahd1.png'); animation-delay: 0s; }
-    .bg-slideshow div:nth-child(2) { background-image: url('./angle2.png'); animation-delay: 4s; }
-    .bg-slideshow div:nth-child(3) { background-image: url('./desoky3.png'); animation-delay: 8s; }
-    .bg-slideshow div:nth-child(4) { background-image: url('./eslam4.png'); animation-delay: 12s; }
-    .bg-slideshow div:nth-child(5) { background-image: url('./kamal5.png'); animation-delay: 16s; }
-    .bg-slideshow div:nth-child(6) { background-image: url('./loay6.png'); animation-delay: 20s; }
-    .bg-slideshow div:nth-child(7) { background-image: url('./seif7.png'); animation-delay: 24s; }
-
-    @keyframes slideAnimation {
-      0% { opacity: 0; } 5% { opacity: 1; } 17% { opacity: 1; } 22% { opacity: 0; } 100% { opacity: 0; }
-    }
-  </style>
-</head>
-<body>
-
-  <div class="bg-slideshow">
-    <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-  </div>
-
-  <div class="container">
-    <h1>ULTIMATE TEAM <span>LEAGUE</span></h1>
-    
-    <div class="nav">
-      <a href="index.html">Standings</a>
-      <a href="predictions.html" class="active">Predictions</a>
-      <a href="matches.html">Matches</a>
-    </div>
-
-    <!-- شاشة تسجيل الدخول بالاسم فقط -->
-    <div id="loginSection" class="login-box">
-      <h3 style="color:var(--accent-green); margin-top:0;">ENTER YOUR NAME</h3>
-      <p style="font-size:13px; color:#94a3b8;">Type your name to save and view your match predictions.</p>
-      <input type="text" id="usernameInput" placeholder="e.g. Desoky, Ahd, Seif, or any friend..." />
-      <button class="login-btn" onclick="loginUser()">Enter Predictions</button>
-    </div>
-
-    <!-- محتوى التوقعات -->
-    <div id="predictionsContent">
-      <div class="user-welcome">
-        <div>Welcome, <span id="displayName"></span></div>
-        <button class="logout-btn" onclick="logoutUser()">Change Name</button>
-      </div>
-
-      <h2>🎯 MATCH PREDICTIONS & POINTS SYSTEM</h2>
-
-      <!-- نظام نقاط التوقعات -->
-      <div class="rules-card">
-        <h4>📊 Prediction Scoring System (نظام نقاط التوقعات)</h4>
-        <ul>
-          <li><strong>النتيجة الصحيحة بالظبط (Exact Score):</strong> تحصل على <strong>3 نقاط</strong> إذا توقعت فوز الفريقين وأهدافهم بدقة.</li>
-          <li><strong>توقع الفائز أو التعادل فقط (Correct Winner/Draw):</strong> تحصل على <strong>نقطة واحدة (1)</strong> إذا توقعت الفائز صح بس الأهداف غلط.</li>
-          <li><strong>الخطأ (Incorrect):</strong> <strong>0 نقاط</strong> إذا خالفت النتيجة توقعك تماماً.</li>
-        </ul>
-      </div>
-
-      <!-- DAY 1 - FIRST LEG -->
-      <h3 style="color:var(--accent-green); border-bottom: 2px solid var(--accent-green); padding-bottom: 5px; margin-top: 30px;">DAY 1 - FIRST LEG (Rounds 1 to 7)</h3>
-      
-      <div class="deadline-card">
-        <span>⏰ DAY 1 DEADLINE:</span>
-        <strong>الجمعة - الساعة 6:00 مساءً</strong>
-      </div>
-
-      <!-- Round 1 -->
-      <div class="round-section">
-        <div class="round-title">Round 1</div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (H)</div> vs 
-            <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r1_m1_h"> - <input type="number" id="p_r1_m1_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (H)</div> vs 
-            <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r1_m2_h"> - <input type="number" id="p_r1_m2_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (H)</div> vs 
-            <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r1_m3_h"> - <input type="number" id="p_r1_m3_a"></div>
-        </div>
-      </div>
-
-      <!-- Round 2 -->
-      <div class="round-section">
-        <div class="round-title">Round 2</div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (H)</div> vs 
-            <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r2_m1_h"> - <input type="number" id="p_r2_m1_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (H)</div> vs 
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r2_m2_h"> - <input type="number" id="p_r2_m2_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (H)</div> vs 
-            <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r2_m3_h"> - <input type="number" id="p_r2_m3_a"></div>
-        </div>
-      </div>
-
-      <!-- Round 3 -->
-      <div class="round-section">
-        <div class="round-title">Round 3</div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (H)</div> vs 
-            <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r3_m1_h"> - <input type="number" id="p_r3_m1_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (H)</div> vs 
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r3_m2_h"> - <input type="number" id="p_r3_m2_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (H)</div> vs 
-            <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r3_m3_h"> - <input type="number" id="p_r3_m3_a"></div>
-        </div>
-      </div>
-
-      <!-- Round 4 -->
-      <div class="round-section">
-        <div class="round-title">Round 4</div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (H)</div> vs 
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r4_m1_h"> - <input type="number" id="p_r4_m1_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (H)</div> vs 
-            <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r4_m2_h"> - <input type="number" id="p_r4_m2_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (H)</div> vs 
-            <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r4_m3_h"> - <input type="number" id="p_r4_m3_a"></div>
-        </div>
-      </div>
-
-      <!-- Round 5 -->
-      <div class="round-section">
-        <div class="round-title">Round 5</div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (H)</div> vs 
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r5_m1_h"> - <input type="number" id="p_r5_m1_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (H)</div> vs 
-            <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r5_m2_h"> - <input type="number" id="p_r5_m2_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (H)</div> vs 
-            <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r5_m3_h"> - <input type="number" id="p_r5_m3_a"></div>
-        </div>
-      </div>
-
-      <!-- Round 6 -->
-      <div class="round-section">
-        <div class="round-title">Round 6</div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (H)</div> vs 
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r6_m1_h"> - <input type="number" id="p_r6_m1_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (H)</div> vs 
-            <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r6_m2_h"> - <input type="number" id="p_r6_m2_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (H)</div> vs 
-            <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r6_m3_h"> - <input type="number" id="p_r6_m3_a"></div>
-        </div>
-      </div>
-
-      <!-- Round 7 -->
-      <div class="round-section">
-        <div class="round-title">Round 7</div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (H)</div> vs 
-            <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r7_m1_h"> - <input type="number" id="p_r7_m1_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (H)</div> vs 
-            <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r7_m2_h"> - <input type="number" id="p_r7_m2_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (H)</div> vs 
-            <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r7_m3_h"> - <input type="number" id="p_r7_m3_a"></div>
-        </div>
-      </div>
-
-
-      <!-- DAY 2 - RETURN LEG -->
-      <h3 style="color:var(--accent-green); border-bottom: 2px solid var(--accent-green); padding-bottom: 5px; margin-top: 40px;">DAY 2 - RETURN LEG (Rounds 8 to 14)</h3>
-      
-      <div class="deadline-card">
-        <span>⏰ DAY 2 DEADLINE:</span>
-        <strong>السبت - الساعة 6:00 مساءً</strong>
-      </div>
-
-      <!-- Round 8 -->
-      <div class="round-section">
-        <div class="round-title">Round 8</div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (H)</div> vs 
-            <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r8_m1_h"> - <input type="number" id="p_r8_m1_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (H)</div> vs 
-            <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r8_m2_h"> - <input type="number" id="p_r8_m2_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (H)</div> vs 
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r8_m3_h"> - <input type="number" id="p_r8_m3_a"></div>
-        </div>
-      </div>
-
-      <!-- Round 9 -->
-      <div class="round-section">
-        <div class="round-title">Round 9</div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (H)</div> vs 
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r9_m1_h"> - <input type="number" id="p_r9_m1_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (H)</div> vs 
-            <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r9_m2_h"> - <input type="number" id="p_r9_m2_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (H)</div> vs 
-            <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r9_m3_h"> - <input type="number" id="p_r9_m3_a"></div>
-        </div>
-      </div>
-
-      <!-- Round 10 -->
-      <div class="round-section">
-        <div class="round-title">Round 10</div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (H)</div> vs 
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r10_m1_h"> - <input type="number" id="p_r10_m1_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (H)</div> vs 
-            <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r10_m2_h"> - <input type="number" id="p_r10_m2_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (H)</div> vs 
-            <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r10_m3_h"> - <input type="number" id="p_r10_m3_a"></div>
-        </div>
-      </div>
-
-      <!-- Round 11 -->
-      <div class="round-section">
-        <div class="round-title">Round 11</div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (H)</div> vs 
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r11_m1_h"> - <input type="number" id="p_r11_m1_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (H)</div> vs 
-            <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r11_m2_h"> - <input type="number" id="p_r11_m2_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (H)</div> vs 
-            <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r11_m3_h"> - <input type="number" id="p_r11_m3_a"></div>
-        </div>
-      </div>
-
-      <!-- Round 12 -->
-      <div class="round-section">
-        <div class="round-title">Round 12</div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (H)</div> vs 
-            <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r12_m1_h"> - <input type="number" id="p_r12_m1_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (H)</div> vs 
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r12_m2_h"> - <input type="number" id="p_r12_m2_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (H)</div> vs 
-            <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r12_m3_h"> - <input type="number" id="p_r12_m3_a"></div>
-        </div>
-      </div>
-
-      <!-- Round 13 -->
-      <div class="round-section">
-        <div class="round-title">Round 13</div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (H)</div> vs 
-            <div class="team-badge-container"><img src="./eslam.png" class="team-logo">Eslam (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r13_m1_h"> - <input type="number" id="p_r13_m1_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (H)</div> vs 
-            <div class="team-badge-container"><img src="./ahd.png" class="team-logo">Ahd (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r13_m2_h"> - <input type="number" id="p_r13_m2_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (H)</div> vs 
-            <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r13_m3_h"> - <input type="number" id="p_r13_m3_a"></div>
-        </div>
-      </div>
-
-      <!-- Round 14 -->
-      <div class="round-section">
-        <div class="round-title">Round 14</div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./seif.png" class="team-logo">Seif (H)</div> vs 
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo">Kamal (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r14_m1_h"> - <input type="number" id="p_r14_m1_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge_container"><img src="./ahd.png" class="team-logo">Ahd (H)</div> vs 
-            <div class="team-badge-container"><img src="./desoky.png" class="team-logo">Desoky (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r14_m2_h"> - <input type="number" id="p_r14_m2_a"></div>
-        </div>
-        <div class="match-row">
-          <div class="match-teams">
-            <div class="team-badge-container"><img src="./Angle.png" class="team-logo">Angle (H)</div> vs 
-            <div class="team-badge-container"><img src="https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" class="team-logo">Loay (A)</div>
-          </div>
-          <div class="score-inputs"><input type="number" id="p_r14_m3_h"> - <input type="number" id="p_r14_m3_a"></div>
-        </div>
-      </div>
-
-      <div class="actions-container">
-        <button class="btn-action" onclick="savePredictions()">Save My Predictions</button>
-        <button class="btn-action btn-share" onclick="sharePredictions()">📤 Share My Predictions</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
+<script>
     const SUPABASE_URL = 'https://ffdltukfzqxqrcpvrxxe.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZGx0dWtmenF4cXJjcHZyeHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDc5NDQsImV4cCI6MjEwNTgyMzk0NH0.utVnf2aOG9yxRZoYlAoziDH_LY3Bvd3KkkmcwdY-IoY';
     
     let db;
     let currentUser = '';
+    let matchesMap = {}; // لربط كل مباراة بالـ ID الحقيقي لها في قاعدة البيانات
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       if (window.supabase) {
         db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        await fetchMatchesMapping();
       }
       const savedUser = localStorage.getItem('league_username');
       if (savedUser) {
         currentUser = savedUser;
-        document.getElementById('usernameInput').value = savedUser;
+        const inputEl = document.getElementById('usernameInput');
+        if (inputEl) inputEl.value = savedUser;
         loginUser();
       }
     });
 
+    // جلب جدول المباريات من Supabase لربط الجولات والأ فرق بالـ match_id الصحيح
+    async function fetchMatchesMapping() {
+      try {
+        const { data, error } = await db.from('matches').select('*');
+        if (error) throw error;
+        if (data) {
+          // تخزين المباريات بحيث يمكننا معرفة الـ id الخاص بكل مباراة بناءً على الفريق المضيف والضيف
+          data.forEach(m => {
+            const key = `${m.home_team}_${m.away_team}`;
+            matchesMap[key] = m.id;
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching matches mapping:', err);
+      }
+    }
+
     function loginUser() {
-      const name = document.getElementById('usernameInput').value.trim();
+      const inputEl = document.getElementById('usernameInput');
+      const name = inputEl ? inputEl.value.trim() : '';
       if (!name) {
         alert('Please enter your name first!');
         return;
@@ -543,9 +47,14 @@
       currentUser = name;
       localStorage.setItem('league_username', currentUser);
       
-      document.getElementById('displayName').innerText = currentUser;
-      document.getElementById('loginSection').style.display = 'none';
-      document.getElementById('predictionsContent').style.display = 'block';
+      const displayEl = document.getElementById('displayName');
+      if (displayEl) displayEl.innerText = currentUser;
+      
+      const loginSec = document.getElementById('loginSection');
+      const predContent = document.getElementById('predictionsContent');
+      
+      if (loginSec) loginSec.style.display = 'none';
+      if (predContent) predContent.style.display = 'block';
 
       loadUserPredictions();
     }
@@ -553,90 +62,163 @@
     function logoutUser() {
       localStorage.removeItem('league_username');
       currentUser = '';
-      document.getElementById('predictionsContent').style.display = 'none';
-      document.getElementById('loginSection').style.display = 'block';
-      document.getElementById('usernameInput').value = '';
+      const loginSec = document.getElementById('loginSection');
+      const predContent = document.getElementById('predictionsContent');
+      
+      if (predContent) predContent.style.display = 'none';
+      if (loginSec) loginSec.style.display = 'block';
     }
+
+    // خريطة توضح المباريات وترتيبها في الـ HTML لتسهيل حفظها واسترجاعها
+    // يتم مطابقة كل حقل إدخال مع الفريقين (Home vs Away)
+    const matchesStructure = [
+      // Round 1
+      { r: 1, m: 1, home: 'Desoky', away: 'Seif' },
+      { r: 1, m: 2, home: 'Angle', away: 'Eslam' },
+      { r: 1, m: 3, home: 'Loay', away: 'Ahd' },
+      // Round 2
+      { r: 2, m: 1, home: 'Kamal', away: 'Desoky' },
+      { r: 2, m: 2, home: 'Seif', away: 'Loay' },
+      { r: 2, m: 3, home: 'Ahd', away: 'Eslam' },
+      // Round 3
+      { r: 3, m: 1, home: 'Kamal', away: 'Angle' },
+      { r: 3, m: 2, home: 'Desoky', away: 'Loay' },
+      { r: 3, m: 3, home: 'Eslam', away: 'Seif' },
+      // Round 4
+      { r: 4, m: 1, home: 'Loay', away: 'Kamal' },
+      { r: 4, m: 2, home: 'Angle', away: 'Ahd' },
+      { r: 4, m: 3, home: 'Eslam', away: 'Desoky' },
+      // Round 5
+      { r: 5, m: 1, home: 'Ahd', away: 'Kamal' },
+      { r: 5, m: 2, home: 'Loay', away: 'Eslam' },
+      { r: 5, m: 3, home: 'Seif', away: 'Angle' },
+      // Round 6
+      { r: 6, m: 1, home: 'Eslam', away: 'Kamal' },
+      { r: 6, m: 2, home: 'Ahd', away: 'Seif' },
+      { r: 6, m: 3, home: 'Desoky', away: 'Angle' },
+      // Round 7
+      { r: 7, m: 1, home: 'Kamal', away: 'Seif' },
+      { r: 7, m: 2, home: 'Desoky', away: 'Ahd' },
+      { r: 7, m: 3, home: 'Loay', away: 'Angle' },
+      // Round 8
+      { r: 8, m: 1, home: 'Seif', away: 'Desoky' },
+      { r: 8, m: 2, home: 'Eslam', away: 'Angle' },
+      { r: 8, m: 3, home: 'Ahd', away: 'Loay' },
+      // Round 9
+      { r: 9, m: 1, home: 'Desoky', away: 'Kamal' },
+      { r: 9, m: 2, home: 'Loay', away: 'Seif' },
+      { r: 9, m: 3, home: 'Eslam', away: 'Ahd' },
+      // Round 10
+      { r: 10, m: 1, home: 'Angle', away: 'Kamal' },
+      { r: 10, m: 2, home: 'Loay', away: 'Desoky' },
+      { r: 10, m: 3, home: 'Seif', away: 'Eslam' },
+      // Round 11
+      { r: 11, m: 1, home: 'Kamal', away: 'Loay' },
+      { r: 11, m: 2, home: 'Ahd', away: 'Angle' },
+      { r: 11, m: 3, home: 'Desoky', away: 'Eslam' },
+      // Round 12
+      { r: 12, m: 1, home: 'Kamal', away: 'Ahd' },
+      { r: 12, m: 2, home: 'Eslam', away: 'Loay' },
+      { r: 12, m: 3, home: 'Angle', away: 'Seif' },
+      // Round 13
+      { r: 13, m: 1, home: 'Kamal', away: 'Eslam' },
+      { r: 13, m: 2, home: 'Seif', away: 'Ahd' },
+      { r: 13, m: 3, home: 'Angle', away: 'Desoky' },
+      // Round 14
+      { r: 14, m: 1, home: 'Seif', away: 'Kamal' },
+      { r: 14, m: 2, home: 'Ahd', away: 'Desoky' },
+      { r: 14, m: 3, home: 'Angle', away: 'Loay' }
+    ];
 
     async function savePredictions() {
       if (!currentUser) {
-        alert('برجاء تسجيل الاسم أولاً!');
+        alert('Please login first!');
         return;
       }
-      
-      const predictionsData = {};
-      for (let r = 1; r <= 14; r++) {
-        for (let m = 1; m <= 3; m++) {
-          const hInput = document.getElementById(`p_r${r}_m${m}_h`);
-          const aInput = document.getElementById(`p_r${r}_m${m}_a`);
-          if (hInput && aInput && (hInput.value !== '' || aInput.value !== '')) {
-            predictionsData[`r${r}_m${m}`] = {
-              home: parseInt(hInput.value) || 0,
-              away: parseInt(aInput.value) || 0
-            };
-          }
+
+      // تحويل اسم المستخدم إلى رقمي (user_id) أو استخدام كود تعريفي ثابت إذا كان الجدول يتطلب رقم int8
+      // سنقوم بتحويل بسيط لـ hash رقمي لاسم المستخدم ليطابق نوع int8 في Supabase
+      let userIdNum = Math.abs(hashCode(currentUser)) % 1000000;
+
+      let upsertData = [];
+
+      for (let item of matchesStructure) {
+        const matchKey = `${item.home}_${item.away}`;
+        const matchId = matchesMap[matchKey];
+
+        if (!matchId) continue;
+
+        const hInput = document.getElementById(`p_r${item.r}_m${item.m}_h`);
+        const aInput = document.getElementById(`p_r${item.r}_m${item.m}_a`);
+
+        if (hInput && aInput && hInput.value !== '' && aInput.value !== '') {
+          upsertData.push({
+            user_id: userIdNum,
+            match_id: matchId,
+            predicted_home_score: parseInt(hInput.value),
+            predicted_away_score: parseInt(aInput.value)
+          });
         }
       }
 
-      localStorage.setItem(`preds_${currentUser}`, JSON.stringify(predictionsData));
-      
-      try {
-        if (db) {
-          const { error } = await db.from('predictions').upsert({
-            username: currentUser,
-            predictions_json: predictionsData,
-            updated_at: new Date()
-          }, { onConflict: 'username' });
+      if (upsertData.length === 0) {
+        alert('Please fill at least one prediction before saving!');
+        return;
+      }
 
-          if (error) {
-            console.log('Saved locally, but DB error:', error.message);
-          }
-        }
-        alert('تم حفظ توقعاتك بنجاح يا ' + currentUser + '! 🎯⚽');
+      try {
+        const { error } = await db.from('predictions').upsert(upsertData, { onConflict: 'user_id,match_id' });
+        if (error) throw error;
+        alert('Predictions saved successfully! 🚀');
       } catch (err) {
-        console.error(err);
-        alert('تم الحفظ محلياً بنجاح!');
+        console.error('Error saving predictions:', err);
+        alert('Failed to save predictions. Check console for details.');
       }
     }
 
     async function loadUserPredictions() {
       if (!currentUser) return;
+      let userIdNum = Math.abs(hashCode(currentUser)) % 1000000;
 
-      let savedData = null;
       try {
-        if (db) {
-          const { data, error } = await db.from('predictions').select('predictions_json').eq('username', currentUser).single();
-          if (data && data.predictions_json) {
-            savedData = data.predictions_json;
+        const { data, error } = await db.from('predictions').select('*').eq('user_id', userIdNum);
+        if (error) throw error;
+
+        if (data) {
+          // عكس خريطة المباريات للبحث بالـ match_id
+          const idToMatch = {};
+          for (let key in matchesMap) {
+            idToMatch[matchesMap[key]] = key;
           }
-        }
-      } catch (e) {
-        console.log('Loading from local storage fallback');
-      }
 
-      if (!savedData) {
-        const local = localStorage.getItem(`preds_${currentUser}`);
-        if (local) savedData = JSON.parse(local);
-      }
-
-      if (savedData) {
-        for (let r = 1; r <= 14; r++) {
-          for (let m = 1; m <= 3; m++) {
-            const key = `r${r}_m${m}`;
-            if (savedData[key]) {
-              const hInput = document.getElementById(`p_r${r}_m${m}_h`);
-              const aInput = document.getElementById(`p_r${r}_m${m}_a`);
-              if (hInput) hInput.value = savedData[key].home;
-              if (aInput) aInput.value = savedData[key].value = savedData[key].away;
+          data.forEach(p => {
+            const matchKey = idToMatch[p.match_id];
+            if (matchKey) {
+              const struct = matchesStructure.find(s => `${s.home}_${s.away}` === matchKey);
+              if (struct) {
+                const hInput = document.getElementById(`p_r${struct.r}_m${struct.m}_h`);
+                const aInput = document.getElementById(`p_r${struct.r}_m${struct.m}_a`);
+                if (hInput) hInput.value = p.predicted_home_score;
+                if (aInput) aInput.value = p.predicted_away_score;
+              }
             }
-          }
+          });
         }
+      } catch (err) {
+        console.error('Error loading predictions:', err);
       }
+    }
+
+    function hashCode(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return hash;
     }
 
     function sharePredictions() {
-      alert('ميزة المشاركة جاهزة! تقدر تاخد سكرين شوت لتوقعاتك وتبعتها في الشلة.');
+      alert('Feature coming soon! You can take a screenshot of your predictions to share with friends.');
     }
   </script>
-</body>
-</html>

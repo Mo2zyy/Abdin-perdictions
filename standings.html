@@ -1,56 +1,46 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>الترتيب والمباريات - Ultimate Team League</title>
+  <title>EA FC League - Standings</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
     :root {
       --bg-dark: #0a0e14;
       --card-bg: #121824;
       --accent-green: #00ff87;
-      --accent-green-hover: #00cc6a;
       --text-white: #f8fafc;
       --border-color: #1e293b;
-      --gold-accent: #f59e0b;
     }
 
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-white); margin: 0; padding: 15px; }
+    body { background-color: var(--bg-dark); color: var(--text-white); margin: 0; padding: 20px; }
     .container { max-width: 900px; margin: 0 auto; }
     
-    h1 { text-align: center; color: var(--text-white); font-weight: 900; letter-spacing: 1px; font-size: 2rem; margin-bottom: 10px; }
+    h1 { text-align: center; color: var(--text-white); font-weight: 900; letter-spacing: 1px; font-size: 2.2rem; margin-bottom: 10px; }
     h1 span { color: var(--accent-green); }
-    h2 { text-align: center; color: var(--accent-green); margin-top: 30px; margin-bottom: 15px; text-transform: uppercase; font-size: 1.3rem; }
+    h2 { text-align: center; color: var(--accent-green); margin-top: 20px; margin-bottom: 20px; text-transform: uppercase; font-size: 1.4rem; }
     
-    /* أزرار التنقل بين الصفحات */
-    .nav { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
-    .nav a { color: var(--text-white); text-decoration: none; padding: 10px 24px; background: var(--card-bg); border-radius: 6px; font-weight: bold; border: 1px solid var(--border-color); transition: all 0.2s; }
+    .nav { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+    .nav a { color: var(--text-white); text-decoration: none; padding: 10px 18px; background: var(--card-bg); border-radius: 6px; font-weight: bold; border: 1px solid var(--border-color); transition: all 0.2s; font-size: 14px; }
     .nav a.active { background: var(--accent-green); color: #000; border-color: var(--accent-green); }
     .nav a:hover:not(.active) { border-color: var(--accent-green); }
 
-    /* تنسيق جدول الترتيب */
     .table-responsive { overflow-x: auto; margin-bottom: 30px; }
     table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
-    th, td { padding: 12px 10px; text-align: center; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+    th, td { padding: 14px 10px; text-align: center; border-bottom: 1px solid var(--border-color); font-size: 14px; }
     th { background: #182232; color: var(--accent-green); font-weight: 800; text-transform: uppercase; }
     tr:hover { background: #1a2332; }
 
-    /* خلية اللاعب القابلة للنقر */
     .player-cell { display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold; cursor: pointer; transition: transform 0.2s, color 0.2s; }
     .player-cell:hover { color: var(--accent-green); transform: scale(1.03); }
     .team-logo { width: 32px; height: 32px; object-fit: contain; border-radius: 50%; border: 1px solid var(--accent-green); background: #000; }
-    
-    /* تنسيق كروت المباريات */
-    .matches-grid { display: flex; flex-direction: column; gap: 12px; }
-    .match-card { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 12px 18px; border-radius: 8px; border: 1px solid var(--border-color); }
-    .score-box { background: #06090e; padding: 6px 14px; border-radius: 6px; font-weight: bold; color: var(--accent-green); border: 1px solid var(--border-color); font-size: 16px; min-width: 70px; text-align: center; }
 
-    /* النافذة المنبثقة (Modal) لبيانات اللاعب */
+    /* Modal Overlay */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; }
     .modal-card { background: var(--card-bg); border: 2px solid var(--accent-green); border-radius: 12px; padding: 25px; width: 90%; max-width: 400px; text-align: center; position: relative; box-shadow: 0 0 20px rgba(0,255,135,0.2); }
-    .close-btn { position: absolute; top: 10px; left: 15px; color: #fff; font-size: 24px; cursor: pointer; font-weight: bold; }
+    .close-btn { position: absolute; top: 10px; right: 15px; color: #fff; font-size: 24px; cursor: pointer; font-weight: bold; }
     .close-btn:hover { color: var(--accent-green); }
     .modal-logo { width: 80px; height: 80px; object-fit: contain; border-radius: 50%; border: 2px solid var(--accent-green); margin-bottom: 10px; background: #000; }
     .modal-title { font-size: 22px; font-weight: bold; color: var(--accent-green); margin-bottom: 15px; }
@@ -63,55 +53,50 @@
   <div class="container">
     <h1>EA SPORTS <span>FC LEAGUE</span></h1>
     
-    <!-- أزرار التنقل -->
     <div class="nav">
-      <a href="index.html">صفحة التوقعات</a>
-      <a href="standings.html" class="active">الترتيب والمباريات</a>
+      <a href="index.html">Predictions</a>
+      <a href="standings.html" class="active">Standings</a>
+      <a href="matches.html">Matches</a>
     </div>
 
-    <h2>📊 جدول الترتيب</h2>
+    <h2>🏆 League Table</h2>
     <div class="table-responsive">
       <table>
         <thead>
           <tr>
             <th>#</th>
-            <th>اللاعب</th>
-            <th>لعب</th>
-            <th>فاز</th>
-            <th>تعادل</th>
-            <th>خسر</th>
-            <th>له</th>
-            <th>عليه</th>
-            <th>الفارق</th>
-            <th>النقاط</th>
+            <th>Player</th>
+            <th>MP</th>
+            <th>W</th>
+            <th>D</th>
+            <th>L</th>
+            <th>GF</th>
+            <th>GA</th>
+            <th>GD</th>
+            <th>PTS</th>
           </tr>
         </thead>
         <tbody id="standings-body">
-          <tr><td colspan="10">جاري تحميل الترتيب...</td></tr>
+          <tr><td colspan="10">Loading Standings...</td></tr>
         </tbody>
       </table>
     </div>
-
-    <h2>⚽ المباريات والنتائج</h2>
-    <div id="matches-container" class="matches-grid">
-      <p style="text-align:center;">جاري تحميل المباريات...</p>
-    </div>
   </div>
 
-  <!-- النافذة المنبثقة لعرض بيانات اللاعب -->
+  <!-- Player Info Modal -->
   <div id="player-modal" class="modal-overlay" onclick="closeModal(event)">
     <div class="modal-card">
       <span class="close-btn" onclick="hideModal()">&times;</span>
       <img id="modal-img" src="" class="modal-logo" alt="">
       <div id="modal-name" class="modal-title"></div>
       
-      <div class="stat-row"><span>المباريات الملعوبة:</span><b id="modal-p">0</b></div>
-      <div class="stat-row"><span>الفوز:</span><b id="modal-w" style="color:#22c55e;">0</b></div>
-      <div class="stat-row"><span>التعادل:</span><b id="modal-d" style="color:#eab308;">0</b></div>
-      <div class="stat-row"><span>الخسارة:</span><b id="modal-l" style="color:#ef4444;">0</b></div>
-      <div class="stat-row"><span>أهداف له / عليه:</span><b><span id="modal-gf">0</span> / <span id="modal-ga">0</span></b></div>
-      <div class="stat-row"><span>فارق الأهداف:</span><b id="modal-gd">0</b></div>
-      <div class="stat-row"><span>إجمالي النقاط:</span><b id="modal-pts" style="color:var(--accent-green); font-size:18px;">0</b></div>
+      <div class="stat-row"><span>Matches Played:</span><b id="modal-p">0</b></div>
+      <div class="stat-row"><span>Wins:</span><b id="modal-w" style="color:#22c55e;">0</b></div>
+      <div class="stat-row"><span>Draws:</span><b id="modal-d" style="color:#eab308;">0</b></div>
+      <div class="stat-row"><span>Losses:</span><b id="modal-l" style="color:#ef4444;">0</b></div>
+      <div class="stat-row"><span>Goals (For / Against):</span><b><span id="modal-gf">0</span> / <span id="modal-ga">0</span></b></div>
+      <div class="stat-row"><span>Goal Difference:</span><b id="modal-gd">0</b></div>
+      <div class="stat-row"><span>Total Points:</span><b id="modal-pts" style="color:var(--accent-green); font-size:18px;">0</b></div>
     </div>
   </div>
 
@@ -140,16 +125,13 @@
 
         if (error) {
           console.error(error);
-          document.getElementById('standings-body').innerHTML = `<tr><td colspan="10" style="color:red;">خطأ: ${error.message}</td></tr>`;
+          document.getElementById('standings-body').innerHTML = `<tr><td colspan="10" style="color:red;">Error: ${error.message}</td></tr>`;
           return;
         }
 
         PLAYERS.forEach(p => {
           globalStats[p] = { name: p, P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, PTS: 0 };
         });
-
-        let matchesHtml = '';
-        let currentRound = 0;
 
         if (matches && matches.length > 0) {
           matches.forEach(m => {
@@ -176,29 +158,6 @@
                 }
               }
             }
-
-            if (m.round_no !== currentRound) {
-              currentRound = m.round_no;
-              matchesHtml += `<h3 style="color:var(--accent-green); margin-top:25px; border-bottom:1px solid var(--border-color); padding-bottom:5px; text-align:center;">الجولة ${currentRound}</h3>`;
-            }
-
-            const hLogo = TEAM_LOGOS[m.home_team] ? `<img src="${TEAM_LOGOS[m.home_team]}" class="team-logo">` : '';
-            const aLogo = TEAM_LOGOS[m.away_team] ? `<img src="${TEAM_LOGOS[m.away_team]}" class="team-logo">` : '';
-            const scoreDisplay = (m.home_score !== null && m.away_score !== null && m.home_score !== undefined) 
-              ? `${m.home_score} - ${m.away_score}` 
-              : 'لم تلعب';
-
-            matchesHtml += `
-              <div class="match-card">
-                <div class="player-cell" style="flex:1; justify-content:flex-start;" onclick="showPlayerCard('${m.home_team}')">
-                  ${hLogo} <span>${m.home_team}</span>
-                </div>
-                <div class="score-box">${scoreDisplay}</div>
-                <div class="player-cell" style="flex:1; justify-content:flex-end;" onclick="showPlayerCard('${m.away_team}')">
-                  <span>${m.away_team}</span> ${aLogo}
-                </div>
-              </div>
-            `;
           });
         }
 
@@ -231,14 +190,12 @@
         });
 
         document.getElementById('standings-body').innerHTML = tableHtml;
-        document.getElementById('matches-container').innerHTML = matchesHtml;
 
       } catch (err) {
         console.error(err);
       }
     }
 
-    // عرض الكارت الخاص باللاعب عند الضغط عليه
     function showPlayerCard(playerName) {
       const p = globalStats[playerName];
       if (!p) return;
@@ -257,15 +214,8 @@
       document.getElementById('player-modal').style.display = 'flex';
     }
 
-    function hideModal() {
-      document.getElementById('player-modal').style.display = 'none';
-    }
-
-    function closeModal(e) {
-      if (e.target.id === 'player-modal') {
-        hideModal();
-      }
-    }
+    function hideModal() { document.getElementById('player-modal').style.display = 'none'; }
+    function closeModal(e) { if (e.target.id === 'player-modal') hideModal(); }
 
     window.onload = loadData;
   </script>

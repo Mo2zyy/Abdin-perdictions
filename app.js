@@ -4,13 +4,13 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const TEAM_LOGOS = {
-  'Ahd': './ahd.jpeg',
-  'Angle': './angle.jpeg',
-  'Desoky': './Desoky.jpeg',
-  'Eslam': './eslam.jpeg',
-  'Kamal': './kamal.jpeg',
-  'Loay': './/Loay.jpeg',
-  'Seif': './Seif.jpeg'
+  'Ahd': './ahd.png',
+  'Angle': './Angle.png',
+  'Desoky': './desoky.png',
+  'Eslam': './eslam.png',
+  'Kamal': 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
+  'Loay': 'https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg',
+  'Seif': './seif.png'
 };
 
 let currentUser = null;
